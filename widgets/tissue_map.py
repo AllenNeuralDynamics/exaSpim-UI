@@ -1,6 +1,6 @@
 import logging
 from widgets.widget_base import WidgetBase
-from qtpy.QtWidgets import QPushButton, QTabWidget, QWidget, QLineEdit, QComboBox,QMessageBox
+from qtpy.QtWidgets import QPushButton, QTabWidget, QWidget, QLineEdit, QComboBox, QMessageBox, QCheckBox
 import pyqtgraph.opengl as gl
 import numpy as np
 from napari.qt.threading import thread_worker
@@ -24,6 +24,9 @@ class TissueMap(WidgetBase):
         self.rotate = {}
         self.map = {}
         self.origin = {}
+
+        self.scan_tiles = [None]
+        self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -58,10 +61,26 @@ class TissueMap(WidgetBase):
         self.map['label'] = QLineEdit()
         self.map['label'].returnPressed.connect(self.set_point)
 
-
-
+        self.map['tiling'] = QCheckBox('See Tiling')
+        self.map['tiling'].stateChanged.connect(self.set_tiling)
 
         return self.create_layout(struct='H', **self.map)
+
+    def set_tiling(self, state):
+
+        if state == 2:
+            self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
+                                                                                        self.cfg.tile_overlap_y_percent)
+
+            self.xtiles, self.ytiles, self.ztiles = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+                                                                                    self.cfg.tile_overlap_y_percent,
+                                                                                    self.cfg.z_step_size_um,
+                                                                                    self.cfg.volume_x_um,
+                                                                                    self.cfg.volume_y_um,
+                                                                                    self.cfg.volume_z_um)
+
+        if state == 0:
+            for tiles in self.scan_tiles: self.plot.removeItem(tiles)
 
     def set_point(self):
 
@@ -86,34 +105,58 @@ class TissueMap(WidgetBase):
         while True:
             try:
                 self.map_pose = self.instrument.sample_pose.get_position()
-                coord = (self.map_pose['X'], self.map_pose['Y'], -self.map_pose['Z'])
+                coord = (self.map_pose['X'], self.map_pose['Y'], -self.map_pose['Z']) if not self.instrument.simulated \
+                    else np.random.randint(-60000, 60000, 3)
                 coord = [i * 0.0001 for i in coord]  # converting from 1/10um to mm
                 self.pos.setData(pos=coord)
 
                 if self.instrument.start_pos == None:
-                    self.draw_volume(coord)
+                    self.plot.removeItem(self.scan_vol)
+                    self.scan_vol = self.draw_volume(coord, (self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
+                              self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
+                              self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000))
+                    self.plot.addItem(self.scan_vol)
+
+
+                    if self.map['tiling'].isChecked():
+
+                        if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
+                            self.set_tiling(2)
+                            self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
+
+                        for x in range(0, self.xtiles):
+
+                            tile = self.draw_volume([round(x * self.x_grid_step_um * .001) + coord[0],
+                                                     round(x * self.y_grid_step_um * .001) * coord[1],coord[2]],
+                                                    [self.cfg.tile_specs['x_field_of_view_um'] * .001,
+                                                     self.cfg.tile_specs['x_field_of_view_um'] * .001,0])
+                            self.scan_tiles.append(tile)
+
+                        for tiles in self.scan_tiles: self.plot.removeItem(tiles) \
+                            if tiles in self.plot.items else self.plot.addItem(tiles)
+
+                        del self.scan_tiles[0:len(self.scan_tiles)-self.xtiles]
 
                 else:
-                    start = [self.instrument.start_pos['X'],
-                             self.instrument.start_pos['Y'],
-                             -self.instrument.start_pos['Z']]
-                    start = [i * 0.0001 for i in start]
-                    self.draw_volume(start)
+                    start = [self.instrument.start_pos['X'] * 0.0001,
+                             self.instrument.start_pos['Y'] * 0.0001,
+                             -self.instrument.start_pos['Z'] * 0.0001]
+                    self.draw_volume(start, [self.cfg.volume_x_um * .001,
+                                             self.cfg.volume_x_um * .001,
+                                             self.cfg.volume_x_um * .001])
             finally:
                 sleep(.5)
                 yield
 
-    def draw_volume(self, coord: list):
+    def draw_volume(self, coord: list, size):
 
         """Redraw and translate volumetric scan box in map"""
 
-        self.plot.removeItem(self.scan_vol)
-        self.scan_vol = gl.GLBoxItem()  # Representing scan volume
-        self.scan_vol.translate(coord[0], coord[1], coord[2])
-        self.scan_vol.setSize(x=self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
-                              y=self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
-                              z=self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000)
-        self.plot.addItem(self.scan_vol)
+        box = gl.GLBoxItem()  # Representing scan volume
+        box.translate(*coord)
+        box.setSize(*size)
+        return box
+
 
     def rotate_buttons(self):
 
@@ -121,24 +164,32 @@ class TissueMap(WidgetBase):
         self.rotate['x-y'].clicked.connect(lambda click=None,
                                                   center=QtGui.QVector3D(self.origin['x'], self.origin['y'], 0),
                                                   elevation=90,
-                                                  azimuth = 0:
+                                                  azimuth=0:
                                            self.rotate_graph(click, center, elevation, azimuth))
 
         self.rotate['x-z'] = QPushButton("X/Z Plane")
         self.rotate['x-z'].clicked.connect(lambda click=None,
                                                   center=QtGui.QVector3D(self.origin['x'], 0, -self.origin['z']),
                                                   elevation=0,
-                                                  azimuth = 90:
+                                                  azimuth=90:
                                            self.rotate_graph(click, center, elevation, azimuth))
 
         self.rotate['y-z'] = QPushButton("Y/Z Plane")
         self.rotate['y-z'].clicked.connect(lambda click=None,
                                                   center=QtGui.QVector3D(0, self.origin['y'], -self.origin['z']),
                                                   elevation=0,
-                                                  azimuth = 0:
+                                                  azimuth=0:
                                            self.rotate_graph(click, center, elevation, azimuth))
 
         return self.create_layout(struct='V', **self.rotate)
+
+    def create_axes(self, rotation, size, translate):
+
+        axes = gl.GLGridItem()
+        axes.rotate(*rotation)
+        axes.setSize(*size)
+        axes.translate(*translate)  # Translate to lower end of x and origin of y and -z
+        self.plot.addItem(axes)
 
     def rotate_graph(self, click, center, elevation, azimuth):
 
@@ -165,41 +216,37 @@ class TissueMap(WidgetBase):
 
         self.plot.opts['center'] = QtGui.QVector3D(self.origin['x'], self.origin['y'], -self.origin['z'])
 
-        # Translate axis so origin of graph translate to center of stage limits
+        # x axes: Translate axis so origin of graph translate to center of stage limits
         # Z coords increase as stage moves down so z origin and coords are negative
+        self.create_axes((90, 0, 1, 0),
+                         (round(axes_len['z']), round(axes_len['y'])),
+                         (low['X'], self.origin['y'], -self.origin['z']))
 
-        axes_x = gl.GLGridItem()
-        axes_x.rotate(90, 0, 1, 0)
-        axes_x.setSize(x=round(axes_len['z']), y=round(axes_len['y']))
-        axes_x.translate(low['X'], self.origin['y'],
-                         -self.origin['z'])  # Translate to lower end of x and origin of y and -z
-        self.plot.addItem(axes_x)
+        # y axes: Translate to lower end of y and origin of x and -z
+        self.create_axes((90, 1, 0, 0),
+                         (round(axes_len['x']), round(axes_len['z'])),
+                         (self.origin['x'], low['Y'], -self.origin['z']))
 
-        axes_y = gl.GLGridItem()
-        axes_y.rotate(90, 1, 0, 0)
-        axes_y.setSize(x=round(axes_len['x']), y=round(axes_len['z']))
-        axes_y.translate(self.origin['x'], low['Y'],
-                         -self.origin['z'])  # Translate to lower end of y and origin of x and -z
-        self.plot.addItem(axes_y)
+        # z axes: Translate to origin of x, y, z
+        self.create_axes((0, 0, 0, 0),
+                         (round(axes_len['x']), round(axes_len['y'])),
+                         (self.origin['x'], self.origin['y'], -up['Z']))
 
-        axes_z = gl.GLGridItem()
-        axes_z.setSize(x=round(axes_len['x']), y=round(axes_len['y']))
-        axes_z.translate(self.origin['x'], self.origin['y'], -up['Z'])  # Translate to origin of x, y, z
-        self.plot.addItem(axes_z)
-        coord = (1, 0, 0)
-        size = 1
-        color = (1.0, 0.0, 0.0, 0.5)
-
-        self.scan_vol = gl.GLBoxItem()  # Representing scan volume
+        # Representing scan volume
+        self.scan_vol = gl.GLBoxItem()
         self.scan_vol.translate(self.origin['x'], self.origin['y'], -up['Z'])
         self.scan_vol.setSize(x=self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
                               y=self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
                               z=self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000)
-
         self.plot.addItem(self.scan_vol)
 
-        self.pos = gl.GLScatterPlotItem(pos=coord, size=size, color=color, pxMode=False)
+        # Representing stage position
+        self.pos = gl.GLScatterPlotItem(pos=(1, 0, 0), size=1, color=(1.0, 0.0, 0.0, 0.5), pxMode=False)
         self.plot.addItem(self.pos)
+
+        # Representing tiles
+        self.scan_tiles[0] = gl.GLBoxItem(size=QtGui.QVector3D(0, 0, 0))
+        self.plot.addItem(self.scan_tiles[0])
 
         return self.plot
 
@@ -227,7 +274,6 @@ class TissueMap(WidgetBase):
     #     for words, points in zip(text, text_pos):
     #         info_point = gl.GLTextItem(pos=points, text=words, font=qtpy.QtGui.QFont('Helvetica', 10))
     #         w.addItem(info_point)
-
 
 
 class GraphItem(gl.GLViewWidget):
