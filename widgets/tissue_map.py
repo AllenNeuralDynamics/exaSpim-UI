@@ -105,48 +105,63 @@ class TissueMap(WidgetBase):
         while True:
             try:
                 self.map_pose = self.instrument.sample_pose.get_position()
-                coord = (self.map_pose['X'], self.map_pose['Y'], -self.map_pose['Z']) if not self.instrument.simulated \
-                    else np.random.randint(-60000, 60000, 3)
+                coord = (
+                self.map_pose['X'], self.map_pose['Y'], -self.map_pose['Z'])  # if not self.instrument.simulated \
+                #     else np.random.randint(-60000, 60000, 3)
                 coord = [i * 0.0001 for i in coord]  # converting from 1/10um to mm
                 self.pos.setData(pos=coord)
 
                 if self.instrument.start_pos == None:
                     self.plot.removeItem(self.scan_vol)
                     self.scan_vol = self.draw_volume(coord, (self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
-                              self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
-                              self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000))
+                                                             self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
+                                                             self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000))
                     self.plot.addItem(self.scan_vol)
 
-
                     if self.map['tiling'].isChecked():
-
-                        if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
-                            self.set_tiling(2)
-                            self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
-
-                        for x in range(0, self.xtiles):
-
-                            tile = self.draw_volume([round(x * self.x_grid_step_um * .001) + coord[0],
-                                                     round(x * self.y_grid_step_um * .001) * coord[1],coord[2]],
-                                                    [self.cfg.tile_specs['x_field_of_view_um'] * .001,
-                                                     self.cfg.tile_specs['x_field_of_view_um'] * .001,0])
-                            self.scan_tiles.append(tile)
-
-                        for tiles in self.scan_tiles: self.plot.removeItem(tiles) \
-                            if tiles in self.plot.items else self.plot.addItem(tiles)
-
-                        del self.scan_tiles[0:len(self.scan_tiles)-self.xtiles]
+                        self.draw_tiles(coord)
 
                 else:
                     start = [self.instrument.start_pos['X'] * 0.0001,
                              self.instrument.start_pos['Y'] * 0.0001,
                              -self.instrument.start_pos['Z'] * 0.0001]
+                    if self.map['tiling'].isChecked():
+                        self.draw_tiles(start)
                     self.draw_volume(start, [self.cfg.volume_x_um * .001,
                                              self.cfg.volume_x_um * .001,
                                              self.cfg.volume_x_um * .001])
             finally:
                 sleep(.5)
                 yield
+
+    def draw_tiles(self, coord):
+
+        if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
+            print('changed volumes')
+            self.set_tiling(2)
+            print(f'x tiles: {self.xtiles} y tiles: {self.ytiles}')
+            self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
+
+        for x in range(0, self.xtiles):
+            tile = self.draw_volume([round(x *self.x_grid_step_um * .001) + coord[0],
+                                     round(self.y_grid_step_um * .001) + coord[1], coord[2]],
+                                    [self.cfg.tile_specs['x_field_of_view_um'] * .001,
+                                     self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
+            tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
+            self.scan_tiles.append(tile)
+
+        for y in range(0, self.ytiles):
+            tile = self.draw_volume([round(self.x_grid_step_um * .001) + coord[0],
+                                     round(y*self.y_grid_step_um * .001) + coord[1], coord[2]],
+                                    [self.cfg.tile_specs['x_field_of_view_um'] * .001,
+                                     self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
+            tile.setColor(qtpy.QtGui.QColor('coral'))
+            self.scan_tiles.append(tile)
+
+        for tiles in self.scan_tiles: self.plot.removeItem(tiles) \
+            if tiles in self.plot.items else self.plot.addItem(tiles)
+
+        del self.scan_tiles[0:len(self.scan_tiles) - (self.xtiles+self.ytiles)]
 
     def draw_volume(self, coord: list, size):
 
@@ -156,7 +171,6 @@ class TissueMap(WidgetBase):
         box.translate(*coord)
         box.setSize(*size)
         return box
-
 
     def rotate_buttons(self):
 
