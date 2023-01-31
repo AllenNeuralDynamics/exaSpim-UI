@@ -67,7 +67,7 @@ class TissueMap(WidgetBase):
         return self.create_layout(struct='H', **self.map)
 
     def set_tiling(self, state):
-
+        # State is 2 if checkmark is pressed
         if state == 2:
             self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
                                                                                         self.cfg.tile_overlap_y_percent)
@@ -79,6 +79,8 @@ class TissueMap(WidgetBase):
                                                                                     self.cfg.volume_y_um,
                                                                                     self.cfg.volume_z_um)
 
+
+        # State is 0 if checkmark is unpressed
         if state == 0:
             for tiles in self.scan_tiles: self.plot.removeItem(tiles)
 
@@ -137,26 +139,18 @@ class TissueMap(WidgetBase):
     def draw_tiles(self, coord):
 
         if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
-            print('changed volumes')
-            self.set_tiling(2)
-            print(f'x tiles: {self.xtiles} y tiles: {self.ytiles}')
+            self.set_tiling(2)  # State is 2 if checkmark is pressed
             self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
 
         for x in range(0, self.xtiles):
-            tile = self.draw_volume([round(x *self.x_grid_step_um * .001) + coord[0],
-                                     round(self.y_grid_step_um * .001) + coord[1], coord[2]],
-                                    [self.cfg.tile_specs['x_field_of_view_um'] * .001,
-                                     self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
-            tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
-            self.scan_tiles.append(tile)
+            for y in range(0, self.ytiles):
 
-        for y in range(0, self.ytiles):
-            tile = self.draw_volume([round(self.x_grid_step_um * .001) + coord[0],
-                                     round(y*self.y_grid_step_um * .001) + coord[1], coord[2]],
-                                    [self.cfg.tile_specs['x_field_of_view_um'] * .001,
-                                     self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
-            tile.setColor(qtpy.QtGui.QColor('coral'))
-            self.scan_tiles.append(tile)
+                tile = self.draw_volume([round(x * self.x_grid_step_um * .001) + coord[0],
+                                         round(y * self.y_grid_step_um * .001) + coord[1], coord[2]],
+                                        [self.cfg.tile_specs['x_field_of_view_um'] * .001,
+                                         self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
+                tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
+                self.scan_tiles.append(tile)
 
         for tiles in self.scan_tiles: self.plot.removeItem(tiles) \
             if tiles in self.plot.items else self.plot.addItem(tiles)
