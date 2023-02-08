@@ -25,7 +25,6 @@ class TissueMap(WidgetBase):
         self.map = {}
         self.origin = {}
 
-        self.scan_tiles = [None]
         self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
 
     def set_tab_widget(self, tab_widget: QTabWidget):
@@ -68,6 +67,7 @@ class TissueMap(WidgetBase):
 
     def set_tiling(self, state):
 
+        # State is 2 if checkmark is pressed
         if state == 2:
             self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
                                                                                         self.cfg.tile_overlap_y_percent)
@@ -78,9 +78,13 @@ class TissueMap(WidgetBase):
                                                                                     self.cfg.volume_x_um,
                                                                                     self.cfg.volume_y_um,
                                                                                     self.cfg.volume_z_um)
-
+        # State is 0 if checkmark is unpressed
         if state == 0:
-            for tiles in self.scan_tiles: self.plot.removeItem(tiles)
+            for item in self.plot.items:
+                if type(item) == gl.GLBoxItem and item != self.scan_vol:
+                    self.plot.removeItem(item)
+
+
 
     def set_point(self):
 
@@ -137,31 +141,21 @@ class TissueMap(WidgetBase):
     def draw_tiles(self, coord):
 
         if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
-            print('changed volumes')
             self.set_tiling(2)
-            print(f'x tiles: {self.xtiles} y tiles: {self.ytiles}')
             self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
 
+        for item in self.plot.items:
+            if type(item) == gl.GLBoxItem and item != self.scan_vol:
+                self.plot.removeItem(item)
+
         for x in range(0, self.xtiles):
-            tile = self.draw_volume([round(x *self.x_grid_step_um * .001) + coord[0],
-                                     round(self.y_grid_step_um * .001) + coord[1], coord[2]],
-                                    [self.cfg.tile_specs['x_field_of_view_um'] * .001,
-                                     self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
-            tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
-            self.scan_tiles.append(tile)
-
-        for y in range(0, self.ytiles):
-            tile = self.draw_volume([round(self.x_grid_step_um * .001) + coord[0],
-                                     round(y*self.y_grid_step_um * .001) + coord[1], coord[2]],
-                                    [self.cfg.tile_specs['x_field_of_view_um'] * .001,
-                                     self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
-            tile.setColor(qtpy.QtGui.QColor('coral'))
-            self.scan_tiles.append(tile)
-
-        for tiles in self.scan_tiles: self.plot.removeItem(tiles) \
-            if tiles in self.plot.items else self.plot.addItem(tiles)
-
-        del self.scan_tiles[0:len(self.scan_tiles) - (self.xtiles+self.ytiles)]
+            for y in range(0, self.ytiles):
+                tile = self.draw_volume([round(x * self.x_grid_step_um * .001) + coord[0],
+                                         round(y * self.y_grid_step_um * .001) + coord[1], coord[2]],
+                                        [self.cfg.tile_specs['x_field_of_view_um'] * .001,
+                                         self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
+                tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
+                self.plot.addItem(tile)
 
     def draw_volume(self, coord: list, size):
 
@@ -220,9 +214,9 @@ class TissueMap(WidgetBase):
 
         dirs = ['x', 'y', 'z']
         low = {'X': 0, 'Y': 0, 'Z': 0} if self.instrument.simulated else \
-            self.instrument.sample_pose.get_lower_travel_limit(*dirs)
+            self.instrument.sample_pose.tigerbox.get_lower_travel_limit(*dirs)
         up = {'X': 60, 'Y': 60, 'Z': 60} if self.instrument.simulated else \
-            self.instrument.sample_pose.get_upper_travel_limit(*dirs)
+            self.instrument.sample_pose.tigerbox.get_upper_travel_limit(*dirs)
         axes_len = {}
         for directions in dirs:
             axes_len[directions] = up[directions.upper()] - low[directions.upper()]
@@ -257,10 +251,6 @@ class TissueMap(WidgetBase):
         # Representing stage position
         self.pos = gl.GLScatterPlotItem(pos=(1, 0, 0), size=1, color=(1.0, 0.0, 0.0, 0.5), pxMode=False)
         self.plot.addItem(self.pos)
-
-        # Representing tiles
-        self.scan_tiles[0] = gl.GLBoxItem(size=QtGui.QVector3D(0, 0, 0))
-        self.plot.addItem(self.scan_tiles[0])
 
         return self.plot
 

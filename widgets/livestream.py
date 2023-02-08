@@ -42,8 +42,8 @@ class Livestream(WidgetBase):
         self.end_scan = None
 
         self.livestream_worker = None
-        self.scale = [self.cfg.cfg['tile_specs']['x_field_of_view_um'] / self.cfg.sensor_row_count,
-                      self.cfg.cfg['tile_specs']['y_field_of_view_um'] / self.cfg.sensor_column_count]
+        self.scale = [self.cfg.cfg['tile_specs']['x_field_of_view_um'] / self.cfg.sensor_column_count,
+                      self.cfg.cfg['tile_specs']['y_field_of_view_um'] / self.cfg.sensor_row_count]
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -119,7 +119,7 @@ class Livestream(WidgetBase):
         self.instrument.stop_livestream()
         self.livestream_worker.quit()
         self.live_view['start'].setText('Start Live View')
-        #self.sample_pos_worker.quit()
+        # self.sample_pos_worker.quit()
 
 
         self.live_view['start'].clicked.connect(self.start_live_view)
@@ -137,7 +137,6 @@ class Livestream(WidgetBase):
 
         key = f"Video"
         try:
-
             layer = self.viewer.layers[key]
             layer._slice.image._view = image[0]
             layer.events.set_data()
@@ -254,8 +253,7 @@ class Livestream(WidgetBase):
         self.log.info('Starting stage update')
         # While livestreaming and looking at the first tab the stage position updates
         while True:
-            while self.instrument.livestream_enabled.is_set() and \
-                    self.tab_widget.currentIndex() == 0 and not self.instrument.sample_pose.is_moving():
+            while self.instrument.livestream_enabled.is_set() and self.tab_widget.currentIndex() == 0:
 
                 self.sample_pos = self.instrument.sample_pose.get_position()
                 for direction, value in self.sample_pos.items():
