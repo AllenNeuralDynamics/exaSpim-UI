@@ -26,6 +26,10 @@ class TissueMap(WidgetBase):
         self.origin = {}
 
         self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
+        self.sample_pose_remap = self.cfg.sample_pose_kwds['axis_map']
+        self.og_axis_remap = {v: k for k, v in self.sample_pose_remap.items()}
+        self.tiles = {}         # Tile in sample pose coords
+        self.grid_step_um = {}  # Grid steps in samplepose coords
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -69,10 +73,12 @@ class TissueMap(WidgetBase):
 
         # State is 2 if checkmark is pressed
         if state == 2:
-            self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
-                                                                                        self.cfg.tile_overlap_y_percent)
 
-            self.xtiles, self.ytiles, self.ztiles = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+            # Grid steps in samplepose coords
+            self.grid_step_um['x'], self.grid_step_um['y'] = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
+                                                                                        self.cfg.tile_overlap_y_percent)
+            # Tile in sample pose coords
+            self.tiles['x'], self.tiles['y'], self.tiles['z'] = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
                                                                                     self.cfg.tile_overlap_y_percent,
                                                                                     self.cfg.z_step_size_um,
                                                                                     self.cfg.volume_x_um,
@@ -117,9 +123,10 @@ class TissueMap(WidgetBase):
 
                 if self.instrument.start_pos == None:
                     self.plot.removeItem(self.scan_vol)
-                    self.scan_vol = self.draw_volume(coord, (self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
-                                                             self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
-                                                             self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000))
+                    self.scan_vol = self.draw_volume(coord,
+                            (self.cfg.imaging_specs[f'volume_{self.og_axis_remap["x"]}_um'] * 1 / 1000,
+                             self.cfg.imaging_specs[f'volume_{self.og_axis_remap["y"]}_um'] * 1 / 1000,
+                             -self.cfg.imaging_specs[f'volume_{self.og_axis_remap["z"]}_um'] * 1 / 1000))
                     self.plot.addItem(self.scan_vol)
 
                     if self.map['tiling'].isChecked():
@@ -148,12 +155,13 @@ class TissueMap(WidgetBase):
             if type(item) == gl.GLBoxItem and item != self.scan_vol:
                 self.plot.removeItem(item)
 
-        for x in range(0, self.xtiles):
-            for y in range(0, self.ytiles):
-                tile = self.draw_volume([round(x * self.x_grid_step_um * .001) + coord[0],
-                                         round(y * self.y_grid_step_um * .001) + coord[1], coord[2]],
-                                        [self.cfg.tile_specs['x_field_of_view_um'] * .001,
-                                         self.cfg.tile_specs['y_field_of_view_um'] * .001, 0])
+        for y in range(0, self.tiles[self.og_axis_remap['y']]):
+            for z in range(0, self.tiles[self.og_axis_remap['z']]):
+                tile = self.draw_volume([coord[0],
+                                         round(y * self.grid_step_um[self.og_axis_remap['y']] * .001) +coord[1],
+                                         round(z * -self.grid_step_um[self.og_axis_remap['z']] * .001) +coord[2]],
+                                        [0,self.cfg.tile_specs[f'{self.og_axis_remap["y"]}_field_of_view_um'] * .001,
+                                         -self.cfg.tile_specs[f'{self.og_axis_remap["z"]}_field_of_view_um'] * .001])
                 tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
                 self.plot.addItem(tile)
 
@@ -209,7 +217,7 @@ class TissueMap(WidgetBase):
 
     def graph(self):
 
-        self.plot = GraphItem()
+        self.plot = gl.GLViewWidget()
         self.plot.opts['distance'] = 40
 
         dirs = ['x', 'y', 'z']
@@ -243,10 +251,27 @@ class TissueMap(WidgetBase):
         # Representing scan volume
         self.scan_vol = gl.GLBoxItem()
         self.scan_vol.translate(self.origin['x'], self.origin['y'], -up['Z'])
-        self.scan_vol.setSize(x=self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
-                              y=self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
-                              z=self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000)
+        self.scan_vol.setSize(x=self.cfg.imaging_specs[f'volume_{self.og_axis_remap["x"]}_um'] * 1 / 1000,
+                              y=self.cfg.imaging_specs[f'volume_{self.og_axis_remap["y"]}_um'] * 1 / 1000,
+                              z=self.cfg.imaging_specs[f'volume_{self.og_axis_remap["z"]}_um'] * 1 / 1000)
         self.plot.addItem(self.scan_vol)
+
+        #axis
+        # x = gl.GLBoxItem()
+        # x.translate(self.origin['x'], self.origin['y'], -up['Z'])
+        # x.setSize(x=33,y=0,z=0)
+        # x.setColor(qtpy.QtGui.QColor('cornflowerblue'))
+        # self.plot.addItem(x)
+        # y = gl.GLBoxItem()
+        # y.translate(self.origin['x'], self.origin['y'], -up['Z'])
+        # y.setSize(x=0, y=33, z=0)
+        # y.setColor(qtpy.QtGui.QColor('red'))
+        # z = gl.GLBoxItem()
+        # self.plot.addItem(y)
+        # z.translate(self.origin['x'], self.origin['y'], -up['Z'])
+        # z.setSize(x=0, y=0, z=33)
+        # z.setColor(qtpy.QtGui.QColor('green'))
+        # self.plot.addItem(z)
 
         # Representing stage position
         self.pos = gl.GLScatterPlotItem(pos=(1, 0, 0), size=1, color=(1.0, 0.0, 0.0, 0.5), pxMode=False)
@@ -254,58 +279,4 @@ class TissueMap(WidgetBase):
 
         return self.plot
 
-    # def upload_graph(self):
-    #
-    #     file = open(r'C:\Users\micah.woodard\Downloads\test1.txt', 'r+')
-    #     elements = [line.rstrip('\n') for line in file.readlines()]
-    #
-    #     try:
-    #         points = np.genfromtxt(elements[1:elements.index('color')])
-    #         colors = np.genfromtxt(elements[elements.index('color') + 1:elements.index('text')])
-    #         text = elements[elements.index('text') + 1:elements.index('text pos')]
-    #         text_pos = np.genfromtxt(elements[elements.index('text pos') + 1:len(elements)])
-    #         text_pos = [np.array(x) for x in text_pos]
-    #
-    #     except:
-    #         self.error_msg('Invalid Map','Invalid map format. Example format:\n points\n 0 0 0 \n 1 1 1\ncolor\n '
-    #                                      '1 1 1 1 \n 0 1 0 1\n text\n hello \ntext pos\n 0 0 0' )
-    #         print('invalid format. format goes points\ncolor\ntext\ntext pos\n')
-    #
-    #
-    #     p1 = gl.GLScatterPlotItem(pos=points, size=2, color=colors)
-    #     w.addItem(p1)
-    #
-    #     for words, points in zip(text, text_pos):
-    #         info_point = gl.GLTextItem(pos=points, text=words, font=qtpy.QtGui.QFont('Helvetica', 10))
-    #         w.addItem(info_point)
 
-
-class GraphItem(gl.GLViewWidget):
-
-    def __init__(self):
-        super().__init__()
-
-    # def mouseReleaseEvent(self, e):
-    #     super().mousePressEvent(e)
-    #
-    #     items = self.itemsAt((e.pos().x() - 5, e.pos().y() - 5, 10, 10))
-    #     if len(items) == 0:
-    #         return
-    #     print(items)
-    #     for item in items:
-    #         if type(item) == gl.GLScatterPlotItem:
-    #
-    #             return_value = self.delete_point_warning()
-    #             if return_value == QMessageBox.Cancel:
-    #                 return
-    #
-    #             self.removeItem(item)
-    #     e.accept()
-    #
-    # def delete_point_warning(self):
-    #     msgBox = QMessageBox()
-    #     msgBox.setIcon(QMessageBox.Information)
-    #     msgBox.setText("Do you want to delete this point?")
-    #     msgBox.setWindowTitle("Delete Point")
-    #     msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-    #     return msgBox.exec()

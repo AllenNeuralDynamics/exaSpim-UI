@@ -6,9 +6,9 @@ tile_prefix = "tile"
 tile_overlap_x_percent = 15
 tile_overlap_y_percent = 15
 z_step_size_um = 1
-volume_x_um = 15615.616
+volume_x_um = 20601.616
 volume_y_um = 7958.72
-volume_z_um = 100
+volume_z_um = 10000
 laser_wavelengths = [ 488, 561, 638, 405,]
 
 [design_specs]
@@ -21,6 +21,7 @@ frame_rest_time_s = 0.05
 buffer_time_s = 0.05
 
 [compressor_specs]
+memento_executable_path = "C:\\Program Files\\Euresys\\Mementox08in\\86_64\\memento.exe"
 image_stack_chunk_size = 64
 compressor_thread_count = 32
 compression_style = "lz4"
