@@ -56,10 +56,10 @@ class VolumetericAcquisition(WidgetBase):
 
         self.run_worker = self._run()
         self.run_worker.start()
-        sleep(5)
-        self.volumetric_image_worker = self._volumetric_image()
-        self.volumetric_image_worker.yielded.connect(self.update_layer)
-        self.volumetric_image_worker.start()
+        # sleep(5)
+        # self.volumetric_image_worker = self._volumetric_image()
+        # self.volumetric_image_worker.yielded.connect(self.update_layer)
+        # self.volumetric_image_worker.start()
 
     @thread_worker
     def _run(self):

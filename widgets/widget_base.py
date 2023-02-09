@@ -99,9 +99,9 @@ class WidgetBase:
 
         value_type = type(getattr(obj, var))
         value = value_type(widget.text())
-        print('widget changed')
+
         if getattr(obj, var, value) != value:
-            print('value is different')
+
             setattr(obj, var, value)
             if self.instrument.livestream_enabled.is_set():
                 self.instrument.apply_config()

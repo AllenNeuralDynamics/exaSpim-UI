@@ -53,8 +53,8 @@ class Livestream(WidgetBase):
     def update_positon(self, index):
 
         directions = ['X', 'Y', 'Z']
-        if index == 0:
-            sleep(1)        # Pause to allow stage to complete any task before asking where it is
+        if index == 0 and not self.instrument.livestream_enabled.is_set():
+
             self.stage_position = self.instrument.sample_pose.get_position()
             # Update stage labels if stage has moved
             for direction in directions:
@@ -100,10 +100,11 @@ class Livestream(WidgetBase):
         self.livestream_worker.yielded.connect(self.update_layer)
         self.livestream_worker.start()
 
-        sleep(1)    # Allow livestream to start
+        sleep(2)    # Allow livestream to start
 
-        # self.sample_pos_worker = self._sample_pos_worker()
-        # self.sample_pos_worker.start()
+        if not self.simulated:
+            self.sample_pos_worker = self._sample_pos_worker()
+            self.sample_pos_worker.start()
 
 
         self.live_view['start'].clicked.connect(self.stop_live_view)
@@ -119,7 +120,7 @@ class Livestream(WidgetBase):
         self.instrument.stop_livestream()
         self.livestream_worker.quit()
         self.live_view['start'].setText('Start Live View')
-        # self.sample_pos_worker.quit()
+        self.sample_pos_worker.quit()
 
 
         self.live_view['start'].clicked.connect(self.start_live_view)
@@ -134,17 +135,15 @@ class Livestream(WidgetBase):
     def update_layer(self, image):
 
         """Update right and left layers switching each iteration"""
-
-        key = f"Video"
-        try:
-            layer = self.viewer.layers[key]
-            layer._slice.image._view = image[0]
-            layer.events.set_data()
-
-        except KeyError:
-
-            self.viewer.add_image(image[0], name=f"Video", scale=self.scale)
-
+        print('hi')
+        # key = f"Video"
+        # try:
+        #     layer = self.viewer.layers[key]
+        #     layer._slice.image._view = image[0]
+        #     layer.events.set_data()
+        #
+        # except KeyError:
+        #     self.viewer.add_image(image[0], name=f"Video", scale=self.scale)
 
 
     def color_change(self):
@@ -253,14 +252,20 @@ class Livestream(WidgetBase):
         self.log.info('Starting stage update')
         # While livestreaming and looking at the first tab the stage position updates
         while True:
-            while self.instrument.livestream_enabled.is_set() and self.tab_widget.currentIndex() == 0:
 
-                self.sample_pos = self.instrument.sample_pose.get_position()
-                for direction, value in self.sample_pos.items():
-                    if direction in self.pos_widget:
-                        self.pos_widget[direction].setValue(int(value*1/10))  #Units in microns
-            yield       # yield so thread can quit
-            sleep(.5)
+                while self.instrument.livestream_enabled.is_set() and self.tab_widget.currentIndex() == 0:
+
+                    try:
+                        self.sample_pos = self.instrument.sample_pose.get_position()
+                        for direction, value in self.sample_pos.items():
+                            if direction in self.pos_widget:
+                                self.pos_widget[direction].setValue(int(value*1/10))  #Units in microns
+                    except:
+                        pass
+
+                yield       # yield so thread can quit
+                sleep(.5)
+
 
     def screenshot_button(self):
 
