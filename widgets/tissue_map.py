@@ -72,10 +72,10 @@ class TissueMap(WidgetBase):
         if state == 2:
 
             # Grid steps in samplepose coords
-            self.grid_step_um['x'], self.grid_step_um['y'] = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
+            self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
                                                                                         self.cfg.tile_overlap_y_percent)
             # Tile in sample pose coords
-            self.tiles['x'], self.tiles['y'], self.tiles['z'] = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+            self.xtiles, self.ytiles, self.ztiles = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
                                                                                     self.cfg.tile_overlap_y_percent,
                                                                                     self.cfg.z_step_size_um,
                                                                                     self.cfg.volume_x_um,
@@ -110,40 +110,49 @@ class TissueMap(WidgetBase):
         """Update position of stage for tissue map"""
 
         while True:
-            try:
-                self.map_pose = self.instrument.tigerbox.get_position()
 
-                coord = (
-                self.map_pose['X'], self.map_pose['Y'], -self.map_pose['Z'])  # if not self.instrument.simulated \
+            try:
+                self.map_pose = self.instrument.sample_pose.get_position()
+
+                coord = {'X': self.map_pose['X']* 0.0001,
+                         'Y': self.map_pose['Y']* 0.0001,
+                         'Z': self.map_pose['Z']* 0.0001}  # if not self.instrument.simulated \
                 #     else np.random.randint(-60000, 60000, 3)
-                coord = [i * 0.0001 for i in coord]  # converting from 1/10um to mm
-                self.pos.setData(pos=coord)
+
+                gui_coord = self.remap_axis(coord)
+                self.pos.setData(pos=[gui_coord['x'],gui_coord['y'], gui_coord['z']])
+
+                    #.setData(**self.remap_axis(coord))
 
                 if self.instrument.start_pos == None:
-                    self.plot.removeItem(self.scan_vol)
-                    self.scan_vol = self.draw_volume([coord[0],
-                                                      coord[1]-(.5* 0.001*(self.cfg.tile_specs[f'{self.og_axis_remap["y"]}_field_of_view_um'])),
-                                                      coord[2]+(.5*0.001*(self.cfg.tile_specs[f'{self.og_axis_remap["z"]}_field_of_view_um']))],
-                            (self.cfg.imaging_specs[f'volume_{self.og_axis_remap["x"]}_um'] * 1 / 1000,
-                             self.cfg.imaging_specs[f'volume_{self.og_axis_remap["y"]}_um'] * 1 / 1000,
-                             -self.cfg.imaging_specs[f'volume_{self.og_axis_remap["z"]}_um'] * 1 / 1000))
+                    for item in self.plot.items:
+                        if type(item) == gl.GLBoxItem:
+                            self.plot.removeItem(item)
+                    volume_pos = {'X': coord['X']-(.5* 0.001*(self.cfg.tile_specs['x_field_of_view_um'])),
+                                                       'Y': coord['Y']-(.5*0.001*(self.cfg.tile_specs['y_field_of_view_um'])),
+                                                       'Z': coord['Z']}
+
+                    scanning_volume =  self.remap_axis({'X':self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
+                                                    'Y':self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
+                                                    'Z':self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000})
+
+                    self.scan_vol = self.draw_volume(self.remap_axis(volume_pos), scanning_volume)
                     self.plot.addItem(self.scan_vol)
 
                     if self.map['tiling'].isChecked():
-                        self.draw_tiles([coord[0],
-                                                      coord[1]-(.5* 0.001*(self.cfg.tile_specs[f'{self.og_axis_remap["y"]}_field_of_view_um'])),
-                                                      coord[2]+(.5*0.001*(self.cfg.tile_specs[f'{self.og_axis_remap["z"]}_field_of_view_um']))])
+                        self.draw_tiles(volume_pos)
 
                 else:
                     #   What coordinate system is start pos?
-                    start = [self.instrument.start_pos['X'] * 0.0001,
-                             ((self.instrument.start_pos['Y']* 0.0001)-(.5*self.cfg.tile_specs[f'{self.og_axis_remap["y"]}_field_of_view_um'])) * 0.001,
-                             ((-self.instrument.start_pos['Z']* 0.0001)+(.5*self.cfg.tile_specs[f'{self.og_axis_remap["z"]}_field_of_view_um'])) * 0.001]
+                    start = self.remap_axis({'X': self.instrument.start_pos['X']-(.5*0.001*(self.cfg.tile_specs['x_field_of_view_um'])),
+                                             'Y': self.instrument.start_pos['Y']-(.5*0.001*(self.cfg.tile_specs['y_field_of_view_um'])),
+                                             'Z': self.instrument.start_pos['Z']})
+
                     if self.map['tiling'].isChecked():
                         self.draw_tiles(start)
-                    self.draw_volume(start, (self.cfg.imaging_specs[f'volume_{self.og_axis_remap["x"]}_um'] * 1 / 1000,
-                             self.cfg.imaging_specs[f'volume_{self.og_axis_remap["y"]}_um'] * 1 / 1000,
-                             -self.cfg.imaging_specs[f'volume_{self.og_axis_remap["z"]}_um'] * 1 / 1000))
+                    self.draw_volume(start, self.remap_axis({'X':self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
+                                                    'Y':self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
+                                                    'Z':self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000}))
             except:
                 sleep(2)
             finally:
@@ -152,6 +161,8 @@ class TissueMap(WidgetBase):
 
     def draw_tiles(self, coord):
 
+        "Coords in sample pose"
+
         if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
             self.set_tiling(2)
             self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
@@ -159,25 +170,28 @@ class TissueMap(WidgetBase):
         for item in self.plot.items:
             if type(item) == gl.GLBoxItem and item != self.scan_vol:
                 self.plot.removeItem(item)
-        # TODO: This needs to be more generalized because we are assuming the tiger x coordinate has no gridstep
-        #   Do this another time in draw volume. make a function? Try finally?
-        for y in range(0, self.tiles[self.og_axis_remap['y']]):
-            for z in range(0, self.tiles[self.og_axis_remap['z']]):
-                tile = self.draw_volume([coord[0],
-                                         round(y * self.grid_step_um[self.og_axis_remap['y']] * .001) +coord[1],
-                                         round(z * -self.grid_step_um[self.og_axis_remap['z']] * .001) +coord[2]],
-                                        [0,self.cfg.tile_specs[f'{self.og_axis_remap["y"]}_field_of_view_um'] * .001,
-                                         -self.cfg.tile_specs[f'{self.og_axis_remap["z"]}_field_of_view_um'] * .001])
+
+        for x in range(0, self.xtiles):
+            for y in range(0, self.ytiles):
+                tile_pos = self.remap_axis({'X':round(x * self.x_grid_step_um * .001)+coord['X'],
+                                               'Y':round(y * self.y_grid_step_um * .001)+coord['Y'],
+                                               'Z':coord['Z']})
+
+
+                tile_volume = self.remap_axis({'X':self.cfg.tile_specs['x_field_of_view_um'] * .001,
+                                               'Y':self.cfg.tile_specs['y_field_of_view_um'] * .001,
+                                               'Z':0})
+                tile = self.draw_volume(tile_pos,tile_volume)
                 tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
                 self.plot.addItem(tile)
 
-    def draw_volume(self, coord: list, size):
+    def draw_volume(self, coord: dict, size: dict):
 
-        """Redraw and translate volumetric scan box in map"""
+        """draw and translate boxes in map. Expecting gui coordinate system"""
 
         box = gl.GLBoxItem()  # Representing scan volume
-        box.translate(*coord)
-        box.setSize(*size)
+        box.translate(coord['x'],coord['y'],coord['z'])
+        box.setSize(**size)
         return box
 
     def rotate_buttons(self):
@@ -222,49 +236,64 @@ class TissueMap(WidgetBase):
         self.plot.opts['elevation'] = elevation
         self.plot.opts['azimuth'] = azimuth
 
+    def remap_axis(self, coords:dict):
+
+        """Remaps sample pose coordinates to gui 3d map coordinates.
+        Sample pose comes in dictionary with uppercase keys and gui uses lowercase"""
+
+        remap = {'x':'Z','y':'X','z':'-Y' }
+        remap_coords = {}
+        for k,v in remap.items():
+            if '-' in v:
+                v = v.lstrip('-')
+                remap_coords[k] = -coords[v]
+            else:
+                remap_coords[k] = coords[v]
+
+        return remap_coords
     def graph(self):
 
         self.plot = gl.GLViewWidget()
         self.plot.opts['distance'] = 40
 
-        dirs = ['x', 'y', 'z']
-        low = {'X': 0, 'Y': 0, 'Z': 0} if self.instrument.simulated else \
-            self.instrument.tigerbox.get_lower_travel_limit(*dirs)
-        up = {'X': 60, 'Y': 60, 'Z': 60} if self.instrument.simulated else \
-            self.instrument.tigerbox.get_upper_travel_limit(*dirs)
+        low = self.remap_axis({'X': 0, 'Y': 0, 'Z': 0}) if self.instrument.simulated else \
+            self.remap_axis(self.instrument.sample_pose.get_lower_travel_limit(*['x', 'y', 'z']))
+        up = self.remap_axis({'X': 45, 'Y': 60, 'Z': 55}) if self.instrument.simulated else \
+            remap_axis(self.instrument.sample_pose.get_upper_travel_limit(*['x', 'y', 'z']))
 
         axes_len = {}
-        for directions in dirs:
-            axes_len[directions] = up[directions.upper()] - low[directions.upper()]
-            self.origin[directions] = low[directions.upper()] + (axes_len[directions] / 2)
+        for directions in low:
+            axes_len[directions] = abs(round(up[directions] - low[directions]))
+            self.origin[directions] = round(low[directions] + (axes_len[directions] / 2))
 
-        self.plot.opts['center'] = QtGui.QVector3D(self.origin['x'], self.origin['y'], -self.origin['z'])
+        self.plot.opts['center'] = QtGui.QVector3D(self.origin['x'], self.origin['y'], self.origin['z'])
 
         # x axes: Translate axis so origin of graph translate to center of stage limits
         # Z coords increase as stage moves down so z origin and coords are negative
         self.create_axes((90, 0, 1, 0),
-                         (round(axes_len['z']), round(axes_len['y'])),
-                         (low['X'], self.origin['y'], -self.origin['z']))
+                         (axes_len['z'], axes_len['y']),
+                         (low['x'], self.origin['y'], self.origin['z']))
 
         # y axes: Translate to lower end of y and origin of x and -z
         self.create_axes((90, 1, 0, 0),
-                         (round(axes_len['x']), round(axes_len['z'])),
-                         (self.origin['x'], low['Y'], -self.origin['z']))
+                         (axes_len['x'], axes_len['z']),
+                         (self.origin['x'], low['y'], self.origin['z']))
 
         # z axes: Translate to origin of x, y, z
         self.create_axes((0, 0, 0, 0),
-                         (round(axes_len['x']), round(axes_len['y'])),
-                         (self.origin['x'], self.origin['y'], -up['Z']))
+                         (axes_len['x'], axes_len['y']),
+                         (self.origin['x'], self.origin['y'], low['z']))
 
         # Representing scan volume
         self.scan_vol = gl.GLBoxItem()
-        self.scan_vol.translate(self.origin['x'], self.origin['y'], -up['Z'])
-        self.scan_vol.setSize(x=self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
-                              y=self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
-                              z=self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000)
+        self.scan_vol.translate(self.origin['x'], self.origin['y'], up['z'])
+        scanning_volume = self.remap_axis({'X':self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
+                           'Y':self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
+                           'Z':self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000})
+        self.scan_vol.setSize(**scanning_volume)
         self.plot.addItem(self.scan_vol)
 
-        # #axis
+        #axis
         # x = gl.GLBoxItem()
         # x.translate(self.origin['x'], self.origin['y'], -up['Z'])
         # x.setSize(x=33,y=0,z=0)
