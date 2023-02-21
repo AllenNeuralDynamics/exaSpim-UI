@@ -27,6 +27,7 @@ class WidgetBase:
         if cfg_value != value:
             self.pathSet(dictionary, path, value)
             if self.instrument.livestream_enabled.is_set():
+
                 self.instrument.apply_config()
 
 

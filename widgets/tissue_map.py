@@ -33,16 +33,22 @@ class TissueMap(WidgetBase):
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
+        """Set the tabwidget that contains main, wavelength, and tissue map tab"""
+
         self.tab_widget = tab_widget
-        self.tab_widget.tabBarClicked.connect(self.stage_positon_map)
+        self.tab_widget.tabBarClicked.connect(self.stage_positon_map)   # When tab bar is clicked see what tab its on
 
     def stage_positon_map(self, index):
+
+        """Check if tab clicked is tissue map tab and start stage update when on tissue map tab
+        :param index: clicked tab index. Tissue map is last tab"""
+
         last_index = len(self.tab_widget) - 1
-        if index == last_index:
+        if index == last_index:                 # Start stage update when on tissue map tab
             self.map_pos_worker = self._map_pos_worker()
             self.map_pos_worker.start()
 
-        else:
+        else:                                   # Quit updating tissue map if not on tissue map tab
             if self.map_pos_worker is not None:
                 self.map_pos_worker.quit()
 
@@ -53,24 +59,27 @@ class TissueMap(WidgetBase):
         """Mark graph with pertinent landmarks"""
 
         self.map['color'] = QComboBox()
-        self.map['color'].addItems(qtpy.QtGui.QColor.colorNames())
+        self.map['color'].addItems(qtpy.QtGui.QColor.colorNames())      # Add all QtGui Colors to drop down box
 
         self.map['mark'] = QPushButton('Set Point')
-        self.map['mark'].clicked.connect(self.set_point)
+        self.map['mark'].clicked.connect(self.set_point)                # Add point when button is presses
 
         self.map['label'] = QLineEdit()
-        self.map['label'].returnPressed.connect(self.set_point)
+        self.map['label'].returnPressed.connect(self.set_point)         # Add text when button is pressed
 
         self.map['tiling'] = QCheckBox('See Tiling')
-        self.map['tiling'].stateChanged.connect(self.set_tiling)
+        self.map['tiling'].stateChanged.connect(self.set_tiling)        # Display tiling of scan when checked
 
         return self.create_layout(struct='H', **self.map)
 
     def set_tiling(self, state):
 
+        """Calculate grid steps and number of tiles for scan volume in config.
+        :param state: state of QCheckbox when clicked. State 2 means checkmark is pressed: state 0 unpressed"""
+
         # State is 2 if checkmark is pressed
         if state == 2:
-            # Grid steps in samplepose coords
+            # Grid steps in sample pose coords
             self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
                                                                                         self.cfg.tile_overlap_y_percent)
             # Tile in sample pose coords
@@ -90,19 +99,20 @@ class TissueMap(WidgetBase):
 
         """Set current position as point on graph"""
 
+        # Remap sample_pos to gui coords and convert 1/10um to mm
         gui_coord = self.remap_axis({'x': self.map_pose['x'] * 0.0001,
                                      'y': self.map_pose['y'] * 0.0001,
                                      'z': self.map_pose['z'] * 0.0001})  # if not self.instrument.simulated \
                                     #     else np.random.randint(-60000, 60000, 3)
         gui_coord = [i for i in gui_coord.values()]  # Coords for point needs to be a list
-        hue = str(self.map['color'].currentText())
+        hue = str(self.map['color'].currentText())   # Color of point determined by drop down box
         point = gl.GLScatterPlotItem(pos=gui_coord, size=.35, color=qtpy.QtGui.QColor(hue), pxMode=False)
-        info = self.map['label'].text()
+        info = self.map['label'].text()              # Text comes from textbox
         info_point = gl.GLTextItem(pos=gui_coord, text=info, font=qtpy.QtGui.QFont('Helvetica', 10))
-        self.plot.addItem(info_point)
+        self.plot.addItem(info_point)               # Add items to plot
         self.plot.addItem(point)
 
-        self.map['label'].clear()
+        self.map['label'].clear()                   # Clear text box
 
     @thread_worker
     def _map_pos_worker(self):
@@ -166,8 +176,9 @@ class TissueMap(WidgetBase):
         """Draw tiles of proposed scan volume.
         :param coord: coordinates of bottom corner of volume in sample pose"""
 
+        # Check if volume in config has changed
         if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
-            self.set_tiling(2)
+            self.set_tiling(2)      # Update grid steps and tile numbers
             self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
 
         for item in self.plot.items:
