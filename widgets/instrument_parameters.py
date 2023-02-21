@@ -48,9 +48,12 @@ class InstrumentParameters(WidgetBase):
                     self.imaging_specs[attr, '_label'], self.imaging_specs[attr] = \
                         self.create_widget(getattr(config, attr), QLineEdit, label=attr)
 
-                    self.imaging_specs[attr].editingFinished.connect \
-                        (lambda obj=config, var=attr, widget=self.imaging_specs[attr]:
-                         self.set_attribute(obj, var, widget))
+                    if attr != 'image_dtype':   # TODO: Hard coded for now but maybe not in the future
+                        self.imaging_specs[attr].editingFinished.connect \
+                            (lambda obj=config, var=attr, widget=self.imaging_specs[attr]:
+                             self.set_attribute(obj, var, widget))
+                    else:
+                        self.imaging_specs[attr].setReadOnly(True)
 
                     self.imaging_specs[attr].setToolTip(prop_obj.__doc__)
 

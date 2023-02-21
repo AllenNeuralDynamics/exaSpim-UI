@@ -134,16 +134,16 @@ class Livestream(WidgetBase):
 
     def update_layer(self, image):
 
-        """Update right and left layers switching each iteration"""
-        print('hi')
-        # key = f"Video"
-        # try:
-        #     layer = self.viewer.layers[key]
-        #     layer._slice.image._view = image[0]
-        #     layer.events.set_data()
-        #
-        # except KeyError:
-        #     self.viewer.add_image(image[0], name=f"Video", scale=self.scale)
+        """Update viewer with new multiscaled camera frame"""
+
+        try:
+            layer = self.viewer.layers['Video']
+            layer.data = image
+        except:
+            # Add image to a new layer if layer doesn't exist yet
+            self.viewer.add_image(image, name = 'Video',
+                                         multiscale=True,
+                                         scale = self.scale)
 
 
     def color_change(self):
@@ -212,7 +212,7 @@ class Livestream(WidgetBase):
 
         """Creates labels and boxs to indicate sample position"""
 
-        directions = ['X', 'Y', 'Z']
+        directions = ['x', 'y', 'z']
         self.stage_position = self.instrument.sample_pose.get_position()
 
         # Create X, Y, Z labels and displays for where stage is
@@ -264,7 +264,7 @@ class Livestream(WidgetBase):
                         pass
 
                 yield       # yield so thread can quit
-                sleep(.5)
+                sleep(1)
 
 
     def screenshot_button(self):
