@@ -83,10 +83,9 @@ class VolumetericAcquisition(WidgetBase):
         try:
             key = 'Volumeteric Run'
             layer = self.viewer.layers[key]
-            layer._slice.image._view = im
-            layer.events.set_data()
+            layer.data = im
 
-        except KeyError:
+        except:
             self.viewer.layers.clear()
             self.viewer.add_image(im, name='Volumeteric Run')
 
@@ -106,7 +105,8 @@ class VolumetericAcquisition(WidgetBase):
 
     def waveform_graph(self):
 
-        """Generate a graph of waveform for sanity check"""
+        """Generate a graph of waveforms for sanity check"""
+
         # TODO: change colors and make it a different pop up window. As of now it will interfere with widget placement
         self.waveform['generate'] = QPushButton('Generate Waveforms')
         self.colors = np.random.randint(0, 255,
@@ -117,13 +117,19 @@ class VolumetericAcquisition(WidgetBase):
         return self.waveform['generate']
 
     def waveform_update(self):
-        t, voltages_t = generate_waveforms(self.cfg, 488) #TODO: Rework so it's using active laser
 
-        self.waveform['graph'].clear()
-        for index, ao_name in enumerate(self.cfg.daq_ao_names_to_channels.keys()):
+        """Update graph with new waveforms"""
+
+        voltages_t = generate_waveforms(self.cfg, channels =self.cfg.channels)      # Generate waveforms based on cfg
+        t = np.linspace(0, self.cfg.daq_period_time, len(voltages_t[0]), endpoint=False)    # Calculate time
+
+        # Cycle through indexes and ao channels names to add lines and legend to graph
+        for index, ao_name in enumerate(self.cfg.n2c.keys()):
             self.waveform['graph'].addLegend(offset=(365, .5), horSpacing=20, verSpacing=0, labelTextSize='8pt')
             self.waveform['graph'].plot(t, voltages_t[index], name=ao_name,
                                         pen=mkPen(color=self.colors[index], width=3))
+
+        # Remove previous graph if present and add new graph
         try:
             self.viewer.window.remove_dock_widget(self.waveform['graph'])
         except LookupError:
