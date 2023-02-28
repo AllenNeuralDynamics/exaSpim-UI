@@ -193,7 +193,7 @@ class TissueMap(WidgetBase):
 
                 tile_volume = self.remap_axis({'x': self.cfg.tile_specs['x_field_of_view_um'] * .001,
                                                'y': self.cfg.tile_specs['y_field_of_view_um'] * .001,
-                                               'z': 0})
+                                               'z': self.cfg.imaging_specs[f'volume_z_um'] * .001})
                 tile = self.draw_volume(tile_pos, tile_volume)
                 tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
                 self.plot.addItem(tile)

@@ -99,7 +99,6 @@ class UserInterface:
         self.livestream_parameters = Livestream(self.viewer, self.cfg, self.instrument, self.simulated)
 
         widgets = {
-            'grid': self.livestream_parameters.grid_widget(),
             'screenshot': self.livestream_parameters.screenshot_button(),
             'position': self.livestream_parameters.sample_stage_position(),
         }
@@ -143,53 +142,6 @@ class UserInterface:
         self.laser_wl_select = self.laser_parameters.laser_wl_select()
         #self.laser_slider = self.laser_parameters.create_layout(struct='H', **widgets)
 
-    # TODO: Can we calculate new volume in livestream and then when instrument_params_widget is clicked update widgets?
-    def set_scan_volume(self, clicked, state):
-
-        """When volume of scan is changed, the config and widgets are subsequently updated"""
-
-        direction = ['X', 'Y', 'Z']
-        current = self.livestream_parameters.sample_pos if self.instrument.livestream_enabled.is_set() \
-                                                      else self.instrument.sample_pose.get_position()
-        set_start = self.instrument.start_pos
-
-        if set_start is None:
-            self.livestream_parameters.set_volume['set_end'].setHidden(False)
-            self.livestream_parameters.set_volume['clear'].setHidden(False)
-            self.instrument.set_scan_start(current)
-
-        else:
-            if state == 'start':
-                self.instrument.set_scan_start(current)
-                if self.livestream_parameters.end_scan == None:
-                    return
-                else:
-                    self.update_volume(direction)
-
-            else:
-                self.livestream_parameters.end_scan = current
-                self.log.info(f'Scan end position set to {self.livestream_parameters.end_scan["X"]}, '
-                              f'{self.livestream_parameters.end_scan["Y"]}, '
-                              f'{self.livestream_parameters.end_scan["Z"]}')
-                self.update_volume(direction)
-
-    def update_volume(self, directions):
-        start = self.instrument.start_pos
-        end = self.livestream_parameters.end_scan
-
-        for direction in directions:
-            self.log.info(f"Setting volume limits.")
-            volume = end[direction] - start[direction]
-            if volume < 0:
-                self.instrument_params.error_msg('Invalid Volume',
-                                                 'Invalid start and end coordinates '
-                                                 'resulting in negative volume values.\n'
-                                                 f'Start: {start["X"]}, {start["Y"]}, {start["Z"]}\n '
-                                                 f'End: {end["X"]}, {end["Y"]}, {end["Z"]}')
-                return
-            self.cfg.imaging_specs[f'volume_{direction}_um'] = volume * 1 / 10
-            self.instrument_params.imaging_specs[f'volume_{direction}_um']. \
-                setText(str(volume * 1 / 10))
 
     def close_instrument(self):
         self.instrument.cfg.save()
