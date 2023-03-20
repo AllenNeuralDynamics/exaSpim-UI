@@ -68,19 +68,22 @@ class Livestream(WidgetBase):
 
         self.live_view['start'] = QPushButton('Start Live View')
         self.live_view['start'].clicked.connect(self.start_live_view)
-
         wv_strs = [str(x) for x in self.possible_wavelengths]
-        self.live_view['wavelength'] = QComboBox()
-        self.live_view['wavelength'].addItems(wv_strs)
-        self.live_view['wavelength'].currentIndexChanged.connect(self.color_change)
+        self.live_view['wavelength'] = QListWidget()
+        self.live_view['wavelength'].setSelectionMode(QAbstractItemView.MultiSelection)
 
-        i = 0
         for wavelength in wv_strs:
-            self.live_view['wavelength'].setItemData(i, QtGui.QColor(self.cfg.channel_specs[wavelength]['color']),
-                                                     QtCore.Qt.BackgroundRole)
-            i += 1
-        self.live_view['wavelength'].setStyleSheet(
-            f'QComboBox {{ background-color:{self.cfg.channel_specs[wv_strs[0]]["color"]}; color : black; }}')
+            wv_item = QListWidgetItem(wavelength)
+            wv_item.setBackground(QtGui.QColor(self.cfg.laser_specs[wavelength]['color']))
+            self.live_view['wavelength'].addItem(wv_item)
+
+        self.live_view['wavelength'].setStyleSheet(" QListWidget:item:selected:active {background: white;"
+                                                   "color: black;"
+                                                   "border: 2px solid green;"
+                                                   "foreground: red; }")
+
+        self.live_view['wavelength'].setMaximumHeight(70)
+        self.live_view['wavelength'].setSortingEnabled(True)
 
         return self.create_layout(struct='H', **self.live_view)
 
@@ -95,7 +98,8 @@ class Livestream(WidgetBase):
         if self.live_view['start'].text() == 'Start Live View':
             self.live_view['start'].setText('Stop Live View')
 
-        self.instrument.start_livestream(int(self.live_view['wavelength'].currentText()))
+        wavelengths = [int(item.text()) for item in self.live_view['wavelength'].selectedItems()]
+        self.instrument.start_livestream(wavelengths)
         self.livestream_worker = create_worker(self.instrument._livestream_worker)
         self.livestream_worker.yielded.connect(self.update_layer)
         self.livestream_worker.start()
@@ -135,78 +139,16 @@ class Livestream(WidgetBase):
     def update_layer(self, image):
 
         """Update viewer with new multiscaled camera frame"""
+        (image, layer_num) = args
 
         try:
-            layer = self.viewer.layers['Video']
+            layer = self.viewer.layers[f"Video {layer_num}"]
             layer.data = image
         except:
             # Add image to a new layer if layer doesn't exist yet
-            self.viewer.add_image(image, name = 'Video',
+            self.viewer.add_image(image, name = f"Video {layer_num}",
                                          multiscale=True,
                                          scale = self.scale)
-
-
-    def color_change(self):
-
-        """Changes color of drop down menu based on selected lasers """
-
-        wavelength = int(self.live_view['wavelength'].currentText())
-        self.live_view['wavelength'].setStyleSheet(
-            f'QComboBox {{ background-color:{self.cfg.channel_specs[str(wavelength)]["color"]}; color : black; }}')
-
-        if self.instrument.livestream_enabled.is_set():
-            self.instrument.setup_imaging_for_laser(wavelength, True)
-
-    def grid_widget(self):
-
-        """Creates input widget for how many horz/vert lines in created grid.
-            Create widget displaying area contained in grid box"""
-
-        self.grid['label'], self.grid['widget'] = self.create_widget(2, QSpinBox, 'Grid Lines: ')
-        self.grid['widget'].setValue(2)
-        self.grid['widget'].setMinimum(2)
-        self.grid['widget'].valueChanged.connect(self.create_grid)
-
-        self.grid['pixel label'], self.grid['pixel widget'] = self.create_widget(
-            f'{ceil(self.cfg.sensor_row_count * self.scale[0])}x'
-            f'{ceil(self.cfg.sensor_column_count * self.scale[1])}', QLineEdit, 'um per Area:')
-        self.grid['pixel widget'].setReadOnly(True)
-
-        return self.create_layout(struct='H', **self.grid)
-
-    def create_grid(self, n):
-
-        """Creates grid layers"""
-
-        try:
-            self.viewer.layers.remove(self.viewer.layers['grid'])
-        except:
-            pass
-
-        dim = [self.cfg.sensor_column_count, self.cfg.sensor_row_count]  # rows
-        vert = [None] * n
-        horz = [None] * n
-        vert[0] = np.array([[0, 0], [dim[0], 0]])
-        horz[0] = np.array([[0, 0], [0, dim[1]]])
-        v_coord = ceil((dim[1] / (n - 1)))
-        h_coord = ceil((dim[0] / (n - 1)))
-        for i in range(0, n - 1):
-            vert[i] = np.array([[0, v_coord * i], [dim[0], v_coord * i]])
-            horz[i] = np.array([[h_coord * i, 0], [h_coord * i, dim[1]]])
-
-        vert[n - 1] = np.array([[0, dim[1]], [dim[0], dim[1]]])
-        horz[n - 1] = np.array([[dim[0], 0], [dim[0], dim[1]]])
-        lines = vert + horz
-        self.viewer.add_shapes(
-            lines,
-            shape_type='line',
-            name='grid',
-            edge_width=10,
-            edge_color='white',
-            scale=self.scale)
-
-        self.grid['pixel widget'].setText(f'{ceil(v_coord * self.scale[0])}x'
-                                          f'{ceil(h_coord * self.scale[1])}')
 
     def sample_stage_position(self):
 
@@ -224,11 +166,7 @@ class Livestream(WidgetBase):
         # Sets start position of scan to current position of sample
         self.set_volume['set_start'] = QPushButton()
         self.set_volume['set_start'].setText('Set Scan Start')
-
-        # Sets start position of scan to current position of sample
-        self.set_volume['set_end'] = QPushButton()
-        self.set_volume['set_end'].setText('Set Scan End')
-        self.set_volume['set_end'].setHidden(True)
+        self.set_volume['set_start'].clicked.connect(self.set_start_position)
 
         self.set_volume['clear'] = QPushButton()
         self.set_volume['clear'].setText('Clear')
@@ -238,6 +176,18 @@ class Livestream(WidgetBase):
         self.pos_widget['volume_widgets'] = self.create_layout(struct='V', **self.set_volume)
 
         return self.create_layout(struct='H', **self.pos_widget)
+
+    def set_start_position(self):
+
+        """Set the starting position of the scan"""
+
+        current = self.sample_pos if self.instrument.livestream_enabled.is_set() \
+            else self.instrument.sample_pose.get_position()
+        set_start = self.instrument.start_pos
+
+        if set_start is None:
+            self.set_volume['clear'].setHidden(False)
+            self.instrument.set_scan_start(current)
 
     def clear_start_position(self):
 
