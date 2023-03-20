@@ -91,9 +91,9 @@ class VolumetericAcquisition(WidgetBase):
 
     def end_scan(self):
 
-        self.instrument.livestream_enabled.clear()
+        #self.instrument.livestream_enabled.clear()
         self.run_worker.quit()
-        self.volumetric_image_worker.quit()
+        #self.volumetric_image_worker.quit()
 
     def overwrite_warning(self):
         msgBox = QMessageBox()

@@ -52,7 +52,7 @@ class Livestream(WidgetBase):
 
     def update_positon(self, index):
 
-        directions = ['X', 'Y', 'Z']
+        directions = ['x', 'y', 'z']
         if index == 0 and not self.instrument.livestream_enabled.is_set():
 
             self.stage_position = self.instrument.sample_pose.get_position()
