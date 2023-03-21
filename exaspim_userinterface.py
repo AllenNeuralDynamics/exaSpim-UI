@@ -103,11 +103,6 @@ class UserInterface:
             'position': self.livestream_parameters.sample_stage_position(),
         }
 
-        # Update config and instrument_params text of change of scan volume
-        self.livestream_parameters.set_volume['set_start'].clicked.connect(lambda clicked=None, state='start':
-                                                                           self.set_scan_volume(clicked, state))
-        self.livestream_parameters.set_volume['set_end'].clicked.connect(lambda clicked=None, state='stop':
-                                                                         self.set_scan_volume(clicked, state))
         return self.livestream_parameters.create_layout(struct='V', **widgets)
 
     def volumeteric_acquisition_widget(self):

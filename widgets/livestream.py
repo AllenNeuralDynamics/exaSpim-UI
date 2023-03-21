@@ -1,5 +1,5 @@
 from widgets.widget_base import WidgetBase
-from qtpy.QtWidgets import QPushButton, QComboBox, QSpinBox, QLineEdit, QTabWidget
+from qtpy.QtWidgets import QPushButton, QComboBox, QSpinBox, QLineEdit, QTabWidget, QListWidget, QListWidgetItem, QAbstractItemView, QMessageBox
 import qtpy.QtGui as QtGui
 import qtpy.QtCore as QtCore
 import numpy as np
@@ -74,7 +74,7 @@ class Livestream(WidgetBase):
 
         for wavelength in wv_strs:
             wv_item = QListWidgetItem(wavelength)
-            wv_item.setBackground(QtGui.QColor(self.cfg.laser_specs[wavelength]['color']))
+            wv_item.setBackground(QtGui.QColor(self.cfg.channel_specs[wavelength]['color']))
             self.live_view['wavelength'].addItem(wv_item)
 
         self.live_view['wavelength'].setStyleSheet(" QListWidget:item:selected:active {background: white;"
@@ -93,12 +93,20 @@ class Livestream(WidgetBase):
         """Start livestreaming"""
 
         self.disable_button(self.live_view['start'])
-        self.live_view['start'].clicked.disconnect(self.start_live_view)
 
+        wavelengths = [int(item.text()) for item in self.live_view['wavelength'].selectedItems()]
+        if wavelengths == []:
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setText("Please select lasers for livestream viewing")
+            msgBox.setWindowTitle("No lasers selected")
+            msgBox.setStandardButtons(QMessageBox.Ok)
+            return msgBox.exec()
+
+        self.live_view['start'].clicked.disconnect(self.start_live_view)
         if self.live_view['start'].text() == 'Start Live View':
             self.live_view['start'].setText('Stop Live View')
 
-        wavelengths = [int(item.text()) for item in self.live_view['wavelength'].selectedItems()]
         self.instrument.start_livestream(wavelengths)
         self.livestream_worker = create_worker(self.instrument._livestream_worker)
         self.livestream_worker.yielded.connect(self.update_layer)
@@ -136,7 +144,7 @@ class Livestream(WidgetBase):
         button.setEnabled(False)
         QtCore.QTimer.singleShot(pause, lambda: button.setDisabled(False))
 
-    def update_layer(self, image):
+    def update_layer(self, args):
 
         """Update viewer with new multiscaled camera frame"""
         (image, layer_num) = args
