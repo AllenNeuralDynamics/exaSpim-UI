@@ -11,7 +11,7 @@ from pathlib import Path
 
 class SpimLogFilter(logging.Filter):
     # Note: add additional modules that we want to catch here.
-    VALID_LOGGER_BASES = {'spim_core', 'exaspim', 'camera', 'tigerasi'}
+    VALID_LOGGER_BASES = {'spim_core', 'exaspim', 'camera', }#'tigerasi'}
 
     def filter(self, record):
         """Returns true for a record that matches a log we want to keep."""
@@ -26,7 +26,7 @@ if __name__ == '__main__':
                         choices=["INFO", "DEBUG"])
     parser.add_argument("--console_output", default=True,
                         help="whether or not to print to the console.")
-    parser.add_argument("--simulated", default=False, action="store_true",
+    parser.add_argument("--simulated", default=True, action="store_true",
                         help="Simulate hardware device connections.")
     # Note: colored console output is buggy on Windows.
     parser.add_argument("--color_console_output", type=bool,

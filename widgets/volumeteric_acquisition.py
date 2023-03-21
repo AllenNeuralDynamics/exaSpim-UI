@@ -56,38 +56,32 @@ class VolumetericAcquisition(WidgetBase):
 
         self.run_worker = self._run()
         self.run_worker.start()
-        # sleep(5)
-        # self.volumetric_image_worker = self._volumetric_image()
-        # self.volumetric_image_worker.yielded.connect(self.update_layer)
-        # self.volumetric_image_worker.start()
+        sleep(5)
+        self.livestream_worker = create_worker(self.instrument._livestream_worker)
+        self.livestream_worker.yielded.connect(self.update_layer)
+        self.livestream_worker.start()
 
     @thread_worker
     def _run(self):
         self.instrument.run(overwrite=self.volumetric_image['overwrite'].isChecked())
         self.end_scan()
 
-    @thread_worker
-    def _volumetric_image(self):
-
-        while True:
-            sleep(1/16)
-            if type(self.instrument.im) == np.ndarray:
-                im = self.instrument.im if not self.simulated else np.random.rand(self.cfg.sensor_row_count,
-                                                                                  self.cfg.sensor_column_count)
-                yield im
-
-    def update_layer(self, im):
+    def update_layer(self, args):
 
         """Update viewer with the newest image from scan"""
 
-        try:
-            key = 'Volumeteric Run'
-            layer = self.viewer.layers[key]
-            layer.data = im
+        (im, layer_num) = args
 
+        try:
+            layer = self.viewer.layers[f"Video {layer_num}"]
+            layer.data = image
+            sleep(1/16)
         except:
-            self.viewer.layers.clear()
-            self.viewer.add_image(im, name='Volumeteric Run')
+            # Add image to a new layer if layer doesn't exist yet
+            self.viewer.add_image(image, name=f"Video {layer_num}",
+                                  multiscale=True,
+                                  scale=self.scale)
+            self.viewer.layers[key].blending = 'additive'
 
     def end_scan(self):
 

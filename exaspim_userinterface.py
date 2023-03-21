@@ -63,11 +63,15 @@ class UserInterface:
             self.tissue_map.set_tab_widget(tabbed_widgets)  # Passing in tab widget to tissue map
             self.livestream_parameters.set_tab_widget(tabbed_widgets)  # Passing in tab widget to livestream
             self.vol_acq_params.set_tab_widget(tabbed_widgets)
+            tabbed_widgets.setMinimumHeight(600)
+
+            liveview_widget = self.livestream_parameters.liveview_widget()  # Widget contains start/stop and wl select
+            liveview_widget.setMaximumHeight(70)
 
             self.viewer.window.add_dock_widget(self.livestream_parameters.create_layout(struct='V',
-                                                            live=self.livestream_parameters.liveview_widget(),
+                                                            live=liveview_widget,
                                                             tab=tabbed_widgets), name=' ')  # Adding tabs to window
-            # TODO: Move set scan to tissue map tab?
+
 
             self.viewer.window.add_dock_widget(instr_params_window, name='Instrument Parameters', area='left')
             self.viewer.window.add_dock_widget(laser_window, name="Laser Current", area='bottom')

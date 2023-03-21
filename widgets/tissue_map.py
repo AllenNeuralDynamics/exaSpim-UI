@@ -100,15 +100,14 @@ class TissueMap(WidgetBase):
         """Set current position as point on graph"""
 
         # Remap sample_pos to gui coords and convert 1/10um to mm
-        gui_coord = self.remap_axis({'x': self.map_pose['x'] * 0.0001,
-                                     'y': self.map_pose['y'] * 0.0001,
-                                     'z': self.map_pose['z'] * 0.0001})  # if not self.instrument.simulated \
+        gui_coord = {k: v * 0.0001 for k, v in self.map_pose.items()}  # if not self.instrument.simulated \
                                     #     else np.random.randint(-60000, 60000, 3)
         gui_coord = [i for i in gui_coord.values()]  # Coords for point needs to be a list
         hue = str(self.map['color'].currentText())   # Color of point determined by drop down box
         point = gl.GLScatterPlotItem(pos=gui_coord, size=.35, color=qtpy.QtGui.QColor(hue), pxMode=False)
-        info = self.map['label'].text()              # Text comes from textbox
-        info_point = gl.GLTextItem(pos=gui_coord, text=info, font=qtpy.QtGui.QFont('Helvetica', 10))
+        info = self.map['label'].text() # Text comes from textbox
+        text = info if info != '' else ", ".join(map(str, gui_coord))
+        info_point = gl.GLTextItem(pos=gui_coord, text=text, font=qtpy.QtGui.QFont('Helvetica', 10))
         self.plot.addItem(info_point)               # Add items to plot
         self.plot.addItem(point)
 
@@ -124,13 +123,11 @@ class TissueMap(WidgetBase):
             try:
                 self.map_pose = self.instrument.sample_pose.get_position()
                 # Convert 1/10um to mm
-                coord = {'x': self.map_pose['x'] * 0.0001,
-                         'y': self.map_pose['y'] * 0.0001,
-                         'z': self.map_pose['z'] * 0.0001}  # if not self.instrument.simulated \
+                coord = {k: v * 0.0001 for k, v in self.map_pose.items()}  # if not self.instrument.simulated \
                 #     else np.random.randint(-60000, 60000, 3)
 
                 gui_coord = self.remap_axis(coord)  # Remap sample_pos to gui coords
-                self.pos.setData(pos=[gui_coord['x'], gui_coord['y'], gui_coord['z']])  # Set position as list
+                self.pos.setData(pos=[i for i in gui_coord.values()])  # Set position as list
 
                 if self.instrument.start_pos == None:
                     for item in self.plot.items:        # Remove previous scan vol and tiles
@@ -142,9 +139,8 @@ class TissueMap(WidgetBase):
                                   'y': coord['y'] - (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
                                   'z': coord['z']}
                     # Translate volume of scan to gui coordinate plane
-                    scanning_volume = self.remap_axis({'x': self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
-                                                       'y': self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
-                                                       'z': self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000})
+                    scanning_volume = self.remap_axis({k : self.cfg.imaging_specs[f'volume_{k}_um'] * .001
+                                                       for k in self.map_pose.keys()})
 
                     self.scan_vol = self.draw_volume(self.remap_axis(volume_pos), scanning_volume)  # Draw volume
                     self.plot.addItem(self.scan_vol)    # Add volume to graph
@@ -161,9 +157,8 @@ class TissueMap(WidgetBase):
 
                     if self.map['tiling'].isChecked():
                         self.draw_tiles(start)
-                    self.draw_volume(start, self.remap_axis({'x': self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
-                                                             'y': self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
-                                                             'z': self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000}))
+                    self.draw_volume(start, self.remap_axis({k : self.cfg.imaging_specs[f'volume_{k}_um'] * .001
+                                                       for k in self.map_pose.keys()}))
             except:
                 # In case Tigerbox throws an error
                 sleep(2)
@@ -193,7 +188,7 @@ class TissueMap(WidgetBase):
 
                 tile_volume = self.remap_axis({'x': self.cfg.tile_specs['x_field_of_view_um'] * .001,
                                                'y': self.cfg.tile_specs['y_field_of_view_um'] * .001,
-                                               'z': self.cfg.imaging_specs[f'volume_z_um'] * .001})
+                                               'z': self.ztiles * self.cfg.z_step_size_um * .001})
                 tile = self.draw_volume(tile_pos, tile_volume)
                 tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
                 self.plot.addItem(tile)
