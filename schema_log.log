@@ -1,0 +1,707 @@
+2023-03-28,12:30:23.736 DEBUG spim_core.spim_base.Exaspim.schema: TigerASI 0.0.1 on branch main at 2b2a885190afb70cc3baaa2d7bfd462687dc8672
+2023-03-28,12:30:23.945 ERROR spim_core.spim_base.Exaspim.schema: TigerASI 0.0.1 has uncommitted changes.
+2023-03-28,12:30:24.444 DEBUG spim_core.spim_base.Exaspim.schema: obis-laser 0.0.1 on branch main at bbb01d7b8c1afe8dd754fe7246e9dfc2cde5cf6d
+2023-03-28,12:30:25.908 DEBUG spim_core.spim_base.Exaspim.schema: opto 0.1 on branch master at d61bf66b17d1653d59a9a8c3de49fab115fec8f3
+2023-03-28,12:30:26.460 INFO spim_core.spim_base.Exaspim.schema: acquisition parameters
+2023-03-28,12:30:26.470 INFO spim_core.spim_base.Exaspim.schema: session_start_time, 2023-03-28_12-30-26
+2023-03-28,12:30:26.470 INFO spim_core.spim_base.Exaspim.schema: local_storage_directory, D:\648860-ID_2023-03-28_12-30-23
+2023-03-28,12:30:26.470 INFO spim_core.spim_base.Exaspim.schema: external_storage_directory, Y:\648860-ID_2023-03-28_12-30-23\micr
+2023-03-28,12:30:26.470 INFO spim_core.spim_base.Exaspim.schema: specimen_id,648860
+2023-03-28,12:30:26.480 INFO spim_core.spim_base.Exaspim.schema: subject_id,648860
+2023-03-28,12:30:26.480 INFO spim_core.spim_base.Exaspim.schema: instrument_id, exaspim-01
+2023-03-28,12:30:26.480 INFO spim_core.spim_base.Exaspim.schema: chamber_immersion_medium, 0.05X SSC
+2023-03-28,12:30:26.490 INFO spim_core.spim_base.Exaspim.schema: chamber_immersion_refractive_index, 1.33
+2023-03-28,12:30:26.500 INFO spim_core.spim_base.Exaspim.schema: tiger motorized axes parameters
+2023-03-28,12:30:26.810 INFO spim_core.spim_base.Exaspim.schema: X axis, Axis Name ChX, X
+2023-03-28,12:30:26.810 INFO spim_core.spim_base.Exaspim.schema: X axis, Limits Status, f
+2023-03-28,12:30:26.820 INFO spim_core.spim_base.Exaspim.schema: X axis, Input Device, NONE [J]
+2023-03-28,12:30:26.820 INFO spim_core.spim_base.Exaspim.schema: X axis, Axis Profile, STD_FP_ROT
+2023-03-28,12:30:26.830 INFO spim_core.spim_base.Exaspim.schema: X axis, Max Lim, 30.295 [SU] mm
+2023-03-28,12:30:26.840 INFO spim_core.spim_base.Exaspim.schema: X axis, Min Lim, -15.021 [SL] mm
+2023-03-28,12:30:26.849 INFO spim_core.spim_base.Exaspim.schema: X axis, Ramp Time, 70.50 [AC] ms
+2023-03-28,12:30:26.849 INFO spim_core.spim_base.Exaspim.schema: X axis, Ramp Length, 16347 enc
+2023-03-28,12:30:26.860 INFO spim_core.spim_base.Exaspim.schema: X axis, Run Speed, 1.28638 [S]mm/s
+2023-03-28,12:30:26.870 INFO spim_core.spim_base.Exaspim.schema: X axis, vmax_enc*64, 7475
+2023-03-28,12:30:26.870 INFO spim_core.spim_base.Exaspim.schema: X axis, Servo Lp Time, 0.50 ms
+2023-03-28,12:30:26.870 INFO spim_core.spim_base.Exaspim.schema: X axis, Enc Polarity, 1 [EP]
+2023-03-28,12:30:26.880 INFO spim_core.spim_base.Exaspim.schema: X axis, dv_enc, 53
+2023-03-28,12:30:26.890 INFO spim_core.spim_base.Exaspim.schema: X axis, LL Axis ID, 24
+2023-03-28,12:30:26.890 INFO spim_core.spim_base.Exaspim.schema: X axis, Drift Error, 0.000200 [E] mm
+2023-03-28,12:30:26.890 INFO spim_core.spim_base.Exaspim.schema: X axis, enc_drift_err, 36
+2023-03-28,12:30:26.900 INFO spim_core.spim_base.Exaspim.schema: X axis, Finish Error, 0.000012 [PC] mm
+2023-03-28,12:30:26.900 INFO spim_core.spim_base.Exaspim.schema: X axis, enc_finsh_err, 2
+2023-03-28,12:30:26.912 INFO spim_core.spim_base.Exaspim.schema: X axis, Backlash, 0.000000 [B] mm
+2023-03-28,12:30:26.916 INFO spim_core.spim_base.Exaspim.schema: X axis, enc_backlash, 0
+2023-03-28,12:30:26.916 INFO spim_core.spim_base.Exaspim.schema: X axis, Overshoot, 0.000000 [OS] mm
+2023-03-28,12:30:26.916 INFO spim_core.spim_base.Exaspim.schema: X axis, enc_overshoot, 0
+2023-03-28,12:30:26.916 INFO spim_core.spim_base.Exaspim.schema: X axis, Kp, 125 [KP]
+2023-03-28,12:30:26.926 INFO spim_core.spim_base.Exaspim.schema: X axis, Ki, 100 [KI]
+2023-03-28,12:30:26.936 INFO spim_core.spim_base.Exaspim.schema: X axis, Kv, 94 [KV]
+2023-03-28,12:30:26.936 INFO spim_core.spim_base.Exaspim.schema: X axis, Kd, 0 [KD]
+2023-03-28,12:30:26.936 INFO spim_core.spim_base.Exaspim.schema: X axis, Ka, 0 [KA]
+2023-03-28,12:30:26.946 INFO spim_core.spim_base.Exaspim.schema: X axis, Kadc, 1
+2023-03-28,12:30:26.946 INFO spim_core.spim_base.Exaspim.schema: X axis, Axis Enable, 1 [MC]
+2023-03-28,12:30:26.956 INFO spim_core.spim_base.Exaspim.schema: X axis, Motor Enable, 0
+2023-03-28,12:30:26.956 INFO spim_core.spim_base.Exaspim.schema: X axis, CMD_stat, NO_MOVE
+2023-03-28,12:30:26.956 INFO spim_core.spim_base.Exaspim.schema: X axis, Move_stat, IDLE
+2023-03-28,12:30:26.967 INFO spim_core.spim_base.Exaspim.schema: X axis, Current pos, 0.0000 mm
+2023-03-28,12:30:26.967 INFO spim_core.spim_base.Exaspim.schema: X axis, enc position, -1
+2023-03-28,12:30:26.977 INFO spim_core.spim_base.Exaspim.schema: X axis, Target pos, 0.0000 mm
+2023-03-28,12:30:26.977 INFO spim_core.spim_base.Exaspim.schema: X axis, enc target, -1
+2023-03-28,12:30:26.977 INFO spim_core.spim_base.Exaspim.schema: X axis, enc pos error, 0
+2023-03-28,12:30:26.987 INFO spim_core.spim_base.Exaspim.schema: X axis, EEsum, 0
+2023-03-28,12:30:26.987 INFO spim_core.spim_base.Exaspim.schema: X axis, Lst Stle Time, 1143 ms
+2023-03-28,12:30:26.987 INFO spim_core.spim_base.Exaspim.schema: X axis, Av Settle Tim, 0 ms
+2023-03-28,12:30:26.997 INFO spim_core.spim_base.Exaspim.schema: X axis, Home position, 607.41 mm
+2023-03-28,12:30:26.997 INFO spim_core.spim_base.Exaspim.schema: X axis, Motor Signal, 0
+2023-03-28,12:30:27.007 INFO spim_core.spim_base.Exaspim.schema: X axis, mm/sec/DAC_ct, 0.01500 [D]
+2023-03-28,12:30:27.007 INFO spim_core.spim_base.Exaspim.schema: X axis, Enc Cnts/mm, 181590.40 [C]
+2023-03-28,12:30:27.007 INFO spim_core.spim_base.Exaspim.schema: X axis, Wait Time, 0 [WT] ms
+2023-03-28,12:30:27.017 INFO spim_core.spim_base.Exaspim.schema: X axis, Maintain code, 0 [MA]
+2023-03-28,12:30:27.017 INFO spim_core.spim_base.Exaspim.schema: X axis, AAlign value, 85 [AA]
+2023-03-28,12:30:27.017 INFO spim_core.spim_base.Exaspim.schema: X axis, AZero value, 93 [AZ]
+2023-03-28,12:30:27.307 INFO spim_core.spim_base.Exaspim.schema: Y axis, Axis Name ChY, Y
+2023-03-28,12:30:27.307 INFO spim_core.spim_base.Exaspim.schema: Y axis, Limits Status, f
+2023-03-28,12:30:27.307 INFO spim_core.spim_base.Exaspim.schema: Y axis, Input Device, NONE [J]
+2023-03-28,12:30:27.317 INFO spim_core.spim_base.Exaspim.schema: Y axis, Axis Profile, STD_FP_ROT
+2023-03-28,12:30:27.317 INFO spim_core.spim_base.Exaspim.schema: Y axis, Max Lim, 43.198 [SU] mm
+2023-03-28,12:30:27.317 INFO spim_core.spim_base.Exaspim.schema: Y axis, Min Lim, -4.398 [SL] mm
+2023-03-28,12:30:27.327 INFO spim_core.spim_base.Exaspim.schema: Y axis, Ramp Time, 70.50 [AC] ms
+2023-03-28,12:30:27.337 INFO spim_core.spim_base.Exaspim.schema: Y axis, Ramp Length, 16347 enc
+2023-03-28,12:30:27.337 INFO spim_core.spim_base.Exaspim.schema: Y axis, Run Speed, 1.28638 [S]mm/s
+2023-03-28,12:30:27.347 INFO spim_core.spim_base.Exaspim.schema: Y axis, vmax_enc*64, 7475
+2023-03-28,12:30:27.347 INFO spim_core.spim_base.Exaspim.schema: Y axis, Servo Lp Time, 0.50 ms
+2023-03-28,12:30:27.347 INFO spim_core.spim_base.Exaspim.schema: Y axis, Enc Polarity, 1 [EP]
+2023-03-28,12:30:27.356 INFO spim_core.spim_base.Exaspim.schema: Y axis, dv_enc, 53
+2023-03-28,12:30:27.356 INFO spim_core.spim_base.Exaspim.schema: Y axis, LL Axis ID, 25
+2023-03-28,12:30:27.356 INFO spim_core.spim_base.Exaspim.schema: Y axis, Drift Error, 0.000200 [E] mm
+2023-03-28,12:30:27.356 INFO spim_core.spim_base.Exaspim.schema: Y axis, enc_drift_err, 36
+2023-03-28,12:30:27.368 INFO spim_core.spim_base.Exaspim.schema: Y axis, Finish Error, 0.000012 [PC] mm
+2023-03-28,12:30:27.368 INFO spim_core.spim_base.Exaspim.schema: Y axis, enc_finsh_err, 2
+2023-03-28,12:30:27.378 INFO spim_core.spim_base.Exaspim.schema: Y axis, Backlash, 0.010000 [B] mm
+2023-03-28,12:30:27.378 INFO spim_core.spim_base.Exaspim.schema: Y axis, enc_backlash, 1815
+2023-03-28,12:30:27.378 INFO spim_core.spim_base.Exaspim.schema: Y axis, Overshoot, 0.000000 [OS] mm
+2023-03-28,12:30:27.388 INFO spim_core.spim_base.Exaspim.schema: Y axis, enc_overshoot, 0
+2023-03-28,12:30:27.388 INFO spim_core.spim_base.Exaspim.schema: Y axis, Kp, 125 [KP]
+2023-03-28,12:30:27.388 INFO spim_core.spim_base.Exaspim.schema: Y axis, Ki, 100 [KI]
+2023-03-28,12:30:27.398 INFO spim_core.spim_base.Exaspim.schema: Y axis, Kv, 94 [KV]
+2023-03-28,12:30:27.398 INFO spim_core.spim_base.Exaspim.schema: Y axis, Kd, 0 [KD]
+2023-03-28,12:30:27.398 INFO spim_core.spim_base.Exaspim.schema: Y axis, Ka, 0 [KA]
+2023-03-28,12:30:27.408 INFO spim_core.spim_base.Exaspim.schema: Y axis, Kadc, 1
+2023-03-28,12:30:27.408 INFO spim_core.spim_base.Exaspim.schema: Y axis, Axis Enable, 1 [MC]
+2023-03-28,12:30:27.408 INFO spim_core.spim_base.Exaspim.schema: Y axis, Motor Enable, 0
+2023-03-28,12:30:27.418 INFO spim_core.spim_base.Exaspim.schema: Y axis, CMD_stat, NO_MOVE
+2023-03-28,12:30:27.418 INFO spim_core.spim_base.Exaspim.schema: Y axis, Move_stat, IDLE
+2023-03-28,12:30:27.418 INFO spim_core.spim_base.Exaspim.schema: Y axis, Current pos, -0.0000 mm
+2023-03-28,12:30:27.428 INFO spim_core.spim_base.Exaspim.schema: Y axis, enc position, -3
+2023-03-28,12:30:27.428 INFO spim_core.spim_base.Exaspim.schema: Y axis, Target pos, 0.0000 mm
+2023-03-28,12:30:27.438 INFO spim_core.spim_base.Exaspim.schema: Y axis, enc target, 0
+2023-03-28,12:30:27.438 INFO spim_core.spim_base.Exaspim.schema: Y axis, enc pos error, 2
+2023-03-28,12:30:27.448 INFO spim_core.spim_base.Exaspim.schema: Y axis, EEsum, 1647
+2023-03-28,12:30:27.448 INFO spim_core.spim_base.Exaspim.schema: Y axis, Lst Stle Time, 65 ms
+2023-03-28,12:30:27.456 INFO spim_core.spim_base.Exaspim.schema: Y axis, Av Settle Tim, 0 ms
+2023-03-28,12:30:27.456 INFO spim_core.spim_base.Exaspim.schema: Y axis, Home position, 573.74 mm
+2023-03-28,12:30:27.456 INFO spim_core.spim_base.Exaspim.schema: Y axis, Motor Signal, 0
+2023-03-28,12:30:27.468 INFO spim_core.spim_base.Exaspim.schema: Y axis, mm/sec/DAC_ct, 0.01500 [D]
+2023-03-28,12:30:27.468 INFO spim_core.spim_base.Exaspim.schema: Y axis, Enc Cnts/mm, 181590.40 [C]
+2023-03-28,12:30:27.468 INFO spim_core.spim_base.Exaspim.schema: Y axis, Wait Time, 0 [WT] ms
+2023-03-28,12:30:27.478 INFO spim_core.spim_base.Exaspim.schema: Y axis, Maintain code, 0 [MA]
+2023-03-28,12:30:27.478 INFO spim_core.spim_base.Exaspim.schema: Y axis, AAlign value, 85 [AA]
+2023-03-28,12:30:27.478 INFO spim_core.spim_base.Exaspim.schema: Y axis, AZero value, 106 [AZ]
+2023-03-28,12:30:27.772 INFO spim_core.spim_base.Exaspim.schema: Z axis, Axis Name ChZ, Z
+2023-03-28,12:30:27.772 INFO spim_core.spim_base.Exaspim.schema: Z axis, Limits Status, W
+2023-03-28,12:30:27.772 INFO spim_core.spim_base.Exaspim.schema: Z axis, Input Device, NONE [J]
+2023-03-28,12:30:27.782 INFO spim_core.spim_base.Exaspim.schema: Z axis, Axis Profile, STD_FP_ROT
+2023-03-28,12:30:27.782 INFO spim_core.spim_base.Exaspim.schema: Z axis, Max Lim, 18.775 [SU] mm
+2023-03-28,12:30:27.782 INFO spim_core.spim_base.Exaspim.schema: Z axis, Min Lim, -13.940 [SL] mm
+2023-03-28,12:30:27.792 INFO spim_core.spim_base.Exaspim.schema: Z axis, Ramp Time, 70.50 [AC] ms
+2023-03-28,12:30:27.792 INFO spim_core.spim_base.Exaspim.schema: Z axis, Ramp Length, 16347 enc
+2023-03-28,12:30:27.802 INFO spim_core.spim_base.Exaspim.schema: Z axis, Run Speed, 1.28638 [S]mm/s
+2023-03-28,12:30:27.802 INFO spim_core.spim_base.Exaspim.schema: Z axis, vmax_enc*64, 7475
+2023-03-28,12:30:27.812 INFO spim_core.spim_base.Exaspim.schema: Z axis, Servo Lp Time, 0.50 ms
+2023-03-28,12:30:27.822 INFO spim_core.spim_base.Exaspim.schema: Z axis, Enc Polarity, 1 [EP]
+2023-03-28,12:30:27.822 INFO spim_core.spim_base.Exaspim.schema: Z axis, dv_enc, 53
+2023-03-28,12:30:27.822 INFO spim_core.spim_base.Exaspim.schema: Z axis, LL Axis ID, 26
+2023-03-28,12:30:27.832 INFO spim_core.spim_base.Exaspim.schema: Z axis, Drift Error, 0.000200 [E] mm
+2023-03-28,12:30:27.832 INFO spim_core.spim_base.Exaspim.schema: Z axis, enc_drift_err, 36
+2023-03-28,12:30:27.842 INFO spim_core.spim_base.Exaspim.schema: Z axis, Finish Error, 0.000012 [PC] mm
+2023-03-28,12:30:27.852 INFO spim_core.spim_base.Exaspim.schema: Z axis, enc_finsh_err, 2
+2023-03-28,12:30:27.852 INFO spim_core.spim_base.Exaspim.schema: Z axis, Backlash, 0.010000 [B] mm
+2023-03-28,12:30:27.852 INFO spim_core.spim_base.Exaspim.schema: Z axis, enc_backlash, 1815
+2023-03-28,12:30:27.861 INFO spim_core.spim_base.Exaspim.schema: Z axis, Overshoot, 0.000000 [OS] mm
+2023-03-28,12:30:27.861 INFO spim_core.spim_base.Exaspim.schema: Z axis, enc_overshoot, 0
+2023-03-28,12:30:27.861 INFO spim_core.spim_base.Exaspim.schema: Z axis, Kp, 125 [KP]
+2023-03-28,12:30:27.872 INFO spim_core.spim_base.Exaspim.schema: Z axis, Ki(*16), 100 [KI]
+2023-03-28,12:30:27.872 INFO spim_core.spim_base.Exaspim.schema: Z axis, Kv, 94 [KV]
+2023-03-28,12:30:27.872 INFO spim_core.spim_base.Exaspim.schema: Z axis, Kd, 0 [KD]
+2023-03-28,12:30:27.882 INFO spim_core.spim_base.Exaspim.schema: Z axis, Ka, 0 [KA]
+2023-03-28,12:30:27.882 INFO spim_core.spim_base.Exaspim.schema: Z axis, Kadc, 1
+2023-03-28,12:30:27.892 INFO spim_core.spim_base.Exaspim.schema: Z axis, Axis Enable, 1 [MC]
+2023-03-28,12:30:27.892 INFO spim_core.spim_base.Exaspim.schema: Z axis, Motor Enable, 0
+2023-03-28,12:30:27.892 INFO spim_core.spim_base.Exaspim.schema: Z axis, CMD_stat, NO_MOVE
+2023-03-28,12:30:27.902 INFO spim_core.spim_base.Exaspim.schema: Z axis, Move_stat, IDLE
+2023-03-28,12:30:27.902 INFO spim_core.spim_base.Exaspim.schema: Z axis, Current pos, 0.0000 mm
+2023-03-28,12:30:27.912 INFO spim_core.spim_base.Exaspim.schema: Z axis, enc position, 4
+2023-03-28,12:30:27.912 INFO spim_core.spim_base.Exaspim.schema: Z axis, Target pos, 0.0000 mm
+2023-03-28,12:30:27.912 INFO spim_core.spim_base.Exaspim.schema: Z axis, enc target, 0
+2023-03-28,12:30:27.922 INFO spim_core.spim_base.Exaspim.schema: Z axis, enc pos error, -2
+2023-03-28,12:30:27.922 INFO spim_core.spim_base.Exaspim.schema: Z axis, EEsum, 148
+2023-03-28,12:30:27.922 INFO spim_core.spim_base.Exaspim.schema: Z axis, Lst Stle Time, 9 ms
+2023-03-28,12:30:27.932 INFO spim_core.spim_base.Exaspim.schema: Z axis, Av Settle Tim, 0 ms
+2023-03-28,12:30:27.932 INFO spim_core.spim_base.Exaspim.schema: Z axis, Home position, 1014.21 mm
+2023-03-28,12:30:27.932 INFO spim_core.spim_base.Exaspim.schema: Z axis, Motor Signal, 0
+2023-03-28,12:30:27.942 INFO spim_core.spim_base.Exaspim.schema: Z axis, mm/sec/DAC_ct, 0.01500 [D]
+2023-03-28,12:30:27.942 INFO spim_core.spim_base.Exaspim.schema: Z axis, Enc Cnts/mm, 181590.40 [C]
+2023-03-28,12:30:27.952 INFO spim_core.spim_base.Exaspim.schema: Z axis, Wait Time, 0 [WT] ms
+2023-03-28,12:30:27.952 INFO spim_core.spim_base.Exaspim.schema: Z axis, Maintain code, 0 [MA]
+2023-03-28,12:30:27.952 INFO spim_core.spim_base.Exaspim.schema: Z axis, AAlign value, 85 [AA]
+2023-03-28,12:30:27.960 INFO spim_core.spim_base.Exaspim.schema: Z axis, AZero value, 75 [AZ]
+2023-03-28,12:30:28.242 INFO spim_core.spim_base.Exaspim.schema: F axis, Axis Name ChF, F
+2023-03-28,12:30:28.242 INFO spim_core.spim_base.Exaspim.schema: F axis, Limits Status, 
+2023-03-28,12:30:28.252 INFO spim_core.spim_base.Exaspim.schema: F axis, Input Device, NONE [J]
+2023-03-28,12:30:28.252 INFO spim_core.spim_base.Exaspim.schema: F axis, Axis Profile, STD_FP_ROT
+2023-03-28,12:30:28.261 INFO spim_core.spim_base.Exaspim.schema: F axis, Max Lim, 18.775 [SU] mm
+2023-03-28,12:30:28.261 INFO spim_core.spim_base.Exaspim.schema: F axis, Min Lim, -13.940 [SL] mm
+2023-03-28,12:30:28.261 INFO spim_core.spim_base.Exaspim.schema: F axis, Ramp Time, 70.50 [AC] ms
+2023-03-28,12:30:28.272 INFO spim_core.spim_base.Exaspim.schema: F axis, Ramp Length, 16347 enc
+2023-03-28,12:30:28.272 INFO spim_core.spim_base.Exaspim.schema: F axis, Run Speed, 1.28638 [S]mm/s
+2023-03-28,12:30:28.282 INFO spim_core.spim_base.Exaspim.schema: F axis, vmax_enc*64, 7475
+2023-03-28,12:30:28.282 INFO spim_core.spim_base.Exaspim.schema: F axis, Servo Lp Time, 0.50 ms
+2023-03-28,12:30:28.292 INFO spim_core.spim_base.Exaspim.schema: F axis, Enc Polarity, 1 [EP]
+2023-03-28,12:30:28.292 INFO spim_core.spim_base.Exaspim.schema: F axis, dv_enc, 53
+2023-03-28,12:30:28.292 INFO spim_core.spim_base.Exaspim.schema: F axis, LL Axis ID, 27
+2023-03-28,12:30:28.302 INFO spim_core.spim_base.Exaspim.schema: F axis, Drift Error, 0.000200 [E] mm
+2023-03-28,12:30:28.312 INFO spim_core.spim_base.Exaspim.schema: F axis, enc_drift_err, 36
+2023-03-28,12:30:28.312 INFO spim_core.spim_base.Exaspim.schema: F axis, Finish Error, 0.000012 [PC] mm
+2023-03-28,12:30:28.322 INFO spim_core.spim_base.Exaspim.schema: F axis, enc_finsh_err, 2
+2023-03-28,12:30:28.322 INFO spim_core.spim_base.Exaspim.schema: F axis, Backlash, 0.010000 [B] mm
+2023-03-28,12:30:28.322 INFO spim_core.spim_base.Exaspim.schema: F axis, enc_backlash, 1815
+2023-03-28,12:30:28.332 INFO spim_core.spim_base.Exaspim.schema: F axis, Overshoot, 0.000000 [OS] mm
+2023-03-28,12:30:28.342 INFO spim_core.spim_base.Exaspim.schema: F axis, enc_overshoot, 0
+2023-03-28,12:30:28.342 INFO spim_core.spim_base.Exaspim.schema: F axis, Kp, 125 [KP]
+2023-03-28,12:30:28.352 INFO spim_core.spim_base.Exaspim.schema: F axis, Ki(*16), 100 [KI]
+2023-03-28,12:30:28.352 INFO spim_core.spim_base.Exaspim.schema: F axis, Kv, 94 [KV]
+2023-03-28,12:30:28.361 INFO spim_core.spim_base.Exaspim.schema: F axis, Kd, 0 [KD]
+2023-03-28,12:30:28.361 INFO spim_core.spim_base.Exaspim.schema: F axis, Ka, 0 [KA]
+2023-03-28,12:30:28.361 INFO spim_core.spim_base.Exaspim.schema: F axis, Kadc, 1
+2023-03-28,12:30:28.361 INFO spim_core.spim_base.Exaspim.schema: F axis, Axis Enable, 1 [MC]
+2023-03-28,12:30:28.372 INFO spim_core.spim_base.Exaspim.schema: F axis, Motor Enable, 0
+2023-03-28,12:30:28.372 INFO spim_core.spim_base.Exaspim.schema: F axis, CMD_stat, NO_MOVE
+2023-03-28,12:30:28.382 INFO spim_core.spim_base.Exaspim.schema: F axis, Move_stat, IDLE
+2023-03-28,12:30:28.382 INFO spim_core.spim_base.Exaspim.schema: F axis, Current pos, 0.0000 mm
+2023-03-28,12:30:28.382 INFO spim_core.spim_base.Exaspim.schema: F axis, enc position, 2
+2023-03-28,12:30:28.392 INFO spim_core.spim_base.Exaspim.schema: F axis, Target pos, 0.0000 mm
+2023-03-28,12:30:28.392 INFO spim_core.spim_base.Exaspim.schema: F axis, enc target, 0
+2023-03-28,12:30:28.392 INFO spim_core.spim_base.Exaspim.schema: F axis, enc pos error, -2
+2023-03-28,12:30:28.402 INFO spim_core.spim_base.Exaspim.schema: F axis, EEsum, -1169
+2023-03-28,12:30:28.402 INFO spim_core.spim_base.Exaspim.schema: F axis, Lst Stle Time, 149 ms
+2023-03-28,12:30:28.402 INFO spim_core.spim_base.Exaspim.schema: F axis, Av Settle Tim, 0 ms
+2023-03-28,12:30:28.412 INFO spim_core.spim_base.Exaspim.schema: F axis, Home position, 1014.21 mm
+2023-03-28,12:30:28.412 INFO spim_core.spim_base.Exaspim.schema: F axis, Motor Signal, 0
+2023-03-28,12:30:28.422 INFO spim_core.spim_base.Exaspim.schema: F axis, mm/sec/DAC_ct, 0.01500 [D]
+2023-03-28,12:30:28.422 INFO spim_core.spim_base.Exaspim.schema: F axis, Enc Cnts/mm, 181590.40 [C]
+2023-03-28,12:30:28.422 INFO spim_core.spim_base.Exaspim.schema: F axis, Wait Time, 0 [WT] ms
+2023-03-28,12:30:28.432 INFO spim_core.spim_base.Exaspim.schema: F axis, Maintain code, 0 [MA]
+2023-03-28,12:30:28.432 INFO spim_core.spim_base.Exaspim.schema: F axis, AAlign value, 85 [AA]
+2023-03-28,12:30:28.432 INFO spim_core.spim_base.Exaspim.schema: F axis, AZero value, 89 [AZ]
+2023-03-28,12:30:28.723 INFO spim_core.spim_base.Exaspim.schema: R axis, Axis Name ChZ, R
+2023-03-28,12:30:28.723 INFO spim_core.spim_base.Exaspim.schema: R axis, Limits Status, W
+2023-03-28,12:30:28.733 INFO spim_core.spim_base.Exaspim.schema: R axis, Input Device, NONE [J]
+2023-03-28,12:30:28.733 INFO spim_core.spim_base.Exaspim.schema: R axis, Axis Profile, ROT_C-MNT
+2023-03-28,12:30:28.743 INFO spim_core.spim_base.Exaspim.schema: R axis, Max Lim, 500.000 [SU] dg
+2023-03-28,12:30:28.743 INFO spim_core.spim_base.Exaspim.schema: R axis, Min Lim, -500.000 [SL] dg
+2023-03-28,12:30:28.753 INFO spim_core.spim_base.Exaspim.schema: R axis, Ramp Time, 21.50 [AC] ms
+2023-03-28,12:30:28.753 INFO spim_core.spim_base.Exaspim.schema: R axis, Ramp Length, 114 enc
+2023-03-28,12:30:28.762 INFO spim_core.spim_base.Exaspim.schema: R axis, Run Speed, 7.71113 [S]dg/s
+2023-03-28,12:30:28.762 INFO spim_core.spim_base.Exaspim.schema: R axis, vmax_enc*64, 86
+2023-03-28,12:30:28.762 INFO spim_core.spim_base.Exaspim.schema: R axis, Servo Lp Time, 0.25 ms
+2023-03-28,12:30:28.774 INFO spim_core.spim_base.Exaspim.schema: R axis, Enc Polarity, 1 [EP]
+2023-03-28,12:30:28.774 INFO spim_core.spim_base.Exaspim.schema: R axis, dv_enc, 1
+2023-03-28,12:30:28.784 INFO spim_core.spim_base.Exaspim.schema: R axis, LL Axis ID, 26
+2023-03-28,12:30:28.794 INFO spim_core.spim_base.Exaspim.schema: R axis, Drift Error, 0.100000 [E] dg
+2023-03-28,12:30:28.794 INFO spim_core.spim_base.Exaspim.schema: R axis, enc_drift_err, 69
+2023-03-28,12:30:28.794 INFO spim_core.spim_base.Exaspim.schema: R axis, Finish Error, 0.003013 [PC] dg
+2023-03-28,12:30:28.804 INFO spim_core.spim_base.Exaspim.schema: R axis, enc_finsh_err, 2
+2023-03-28,12:30:28.804 INFO spim_core.spim_base.Exaspim.schema: R axis, Backlash, 0.100000 [B] dg
+2023-03-28,12:30:28.804 INFO spim_core.spim_base.Exaspim.schema: R axis, enc_backlash, 69
+2023-03-28,12:30:28.814 INFO spim_core.spim_base.Exaspim.schema: R axis, Overshoot, 0.000000 [OS] dg
+2023-03-28,12:30:28.814 INFO spim_core.spim_base.Exaspim.schema: R axis, enc_overshoot, 0
+2023-03-28,12:30:28.824 INFO spim_core.spim_base.Exaspim.schema: R axis, Kp, 1000 [KP]
+2023-03-28,12:30:28.824 INFO spim_core.spim_base.Exaspim.schema: R axis, Ki, 160 [KI]
+2023-03-28,12:30:28.824 INFO spim_core.spim_base.Exaspim.schema: R axis, Kv, 8162 [KV]
+2023-03-28,12:30:28.834 INFO spim_core.spim_base.Exaspim.schema: R axis, Kd, 0 [KD]
+2023-03-28,12:30:28.834 INFO spim_core.spim_base.Exaspim.schema: R axis, Ka, 0 [KA]
+2023-03-28,12:30:28.844 INFO spim_core.spim_base.Exaspim.schema: R axis, Kadc, 1
+2023-03-28,12:30:28.844 INFO spim_core.spim_base.Exaspim.schema: R axis, Axis Enable, 1 [MC]
+2023-03-28,12:30:28.844 INFO spim_core.spim_base.Exaspim.schema: R axis, Motor Enable, 0
+2023-03-28,12:30:28.854 INFO spim_core.spim_base.Exaspim.schema: R axis, CMD_stat, NO_MOVE
+2023-03-28,12:30:28.854 INFO spim_core.spim_base.Exaspim.schema: R axis, Move_stat, IDLE
+2023-03-28,12:30:28.862 INFO spim_core.spim_base.Exaspim.schema: R axis, Current pos, 358.7750 dg
+2023-03-28,12:30:28.862 INFO spim_core.spim_base.Exaspim.schema: R axis, enc position, 250082
+2023-03-28,12:30:28.862 INFO spim_core.spim_base.Exaspim.schema: R axis, Target pos, 358.7750 dg
+2023-03-28,12:30:28.873 INFO spim_core.spim_base.Exaspim.schema: R axis, enc target, 250082
+2023-03-28,12:30:28.873 INFO spim_core.spim_base.Exaspim.schema: R axis, enc pos error, 0
+2023-03-28,12:30:28.873 INFO spim_core.spim_base.Exaspim.schema: R axis, EEsum, 0
+2023-03-28,12:30:28.883 INFO spim_core.spim_base.Exaspim.schema: R axis, Lst Stle Time, 68 ms
+2023-03-28,12:30:28.883 INFO spim_core.spim_base.Exaspim.schema: R axis, Av Settle Tim, 0 ms
+2023-03-28,12:30:28.883 INFO spim_core.spim_base.Exaspim.schema: R axis, Home position, 1000.00 dg
+2023-03-28,12:30:28.893 INFO spim_core.spim_base.Exaspim.schema: R axis, Motor Signal, 0
+2023-03-28,12:30:28.893 INFO spim_core.spim_base.Exaspim.schema: R axis, mm/sec/DAC_ct, 0.09000 [D]
+2023-03-28,12:30:28.893 INFO spim_core.spim_base.Exaspim.schema: R axis, Enc Cnts/dg, 697.04 [C]
+2023-03-28,12:30:28.903 INFO spim_core.spim_base.Exaspim.schema: R axis, Wait Time, 0 [WT] ms
+2023-03-28,12:30:28.903 INFO spim_core.spim_base.Exaspim.schema: R axis, Maintain code, 0 [MA]
+2023-03-28,12:30:28.916 INFO spim_core.spim_base.Exaspim.schema: R axis, AAlign value, 85 [AA]
+2023-03-28,12:30:28.919 INFO spim_core.spim_base.Exaspim.schema: R axis, AZero value, 86 [AZ]
+2023-03-28,12:30:29.304 INFO spim_core.spim_base.Exaspim.schema: V axis, Axis Name ChZ, V
+2023-03-28,12:30:29.304 INFO spim_core.spim_base.Exaspim.schema: V axis, Limits Status, 
+2023-03-28,12:30:29.304 INFO spim_core.spim_base.Exaspim.schema: V axis, Input Device, NONE [J]
+2023-03-28,12:30:29.314 INFO spim_core.spim_base.Exaspim.schema: V axis, Axis Profile, TLC
+2023-03-28,12:30:29.314 INFO spim_core.spim_base.Exaspim.schema: V axis, Max Lim, 32.768 [SU] ct
+2023-03-28,12:30:29.324 INFO spim_core.spim_base.Exaspim.schema: V axis, Min Lim, -32.768 [SL] ct
+2023-03-28,12:30:29.334 INFO spim_core.spim_base.Exaspim.schema: V axis, Ramp Time, 0.50 [AC] ms
+2023-03-28,12:30:29.334 INFO spim_core.spim_base.Exaspim.schema: V axis, Ramp Length, 0 enc
+2023-03-28,12:30:29.334 INFO spim_core.spim_base.Exaspim.schema: V axis, Run Speed, 4356.00000 [S]ct/s
+2023-03-28,12:30:29.344 INFO spim_core.spim_base.Exaspim.schema: V axis, vmax_enc* 1, 2178
+2023-03-28,12:30:29.344 INFO spim_core.spim_base.Exaspim.schema: V axis, Servo Lp Time, 0.50 ms
+2023-03-28,12:30:29.354 INFO spim_core.spim_base.Exaspim.schema: V axis, Enc Polarity, 1 [EP]
+2023-03-28,12:30:29.363 INFO spim_core.spim_base.Exaspim.schema: V axis, dv_enc, 2178
+2023-03-28,12:30:29.363 INFO spim_core.spim_base.Exaspim.schema: V axis, LL Axis ID, 26
+2023-03-28,12:30:29.363 INFO spim_core.spim_base.Exaspim.schema: V axis, Drift Error, 0.000000 [E] ct
+2023-03-28,12:30:29.374 INFO spim_core.spim_base.Exaspim.schema: V axis, enc_drift_err, 0
+2023-03-28,12:30:29.374 INFO spim_core.spim_base.Exaspim.schema: V axis, Finish Error, 0.000000 [PC] ct
+2023-03-28,12:30:29.384 INFO spim_core.spim_base.Exaspim.schema: V axis, enc_finsh_err, 0
+2023-03-28,12:30:29.384 INFO spim_core.spim_base.Exaspim.schema: V axis, Backlash, 0.000000 [B] ct
+2023-03-28,12:30:29.394 INFO spim_core.spim_base.Exaspim.schema: V axis, DAC offset, 32767
+2023-03-28,12:30:29.394 INFO spim_core.spim_base.Exaspim.schema: V axis, Overshoot, 0.000000 [OS] ct
+2023-03-28,12:30:29.394 INFO spim_core.spim_base.Exaspim.schema: V axis, enc_overshoot, 0
+2023-03-28,12:30:29.404 INFO spim_core.spim_base.Exaspim.schema: V axis, Kp, 0 [KP]
+2023-03-28,12:30:29.404 INFO spim_core.spim_base.Exaspim.schema: V axis, Ki(*16), 0 [KI]
+2023-03-28,12:30:29.404 INFO spim_core.spim_base.Exaspim.schema: V axis, Kv, 0 [KV]
+2023-03-28,12:30:29.414 INFO spim_core.spim_base.Exaspim.schema: V axis, Kd, 0 [KD]
+2023-03-28,12:30:29.414 INFO spim_core.spim_base.Exaspim.schema: V axis, Ka, 0 [KA]
+2023-03-28,12:30:29.424 INFO spim_core.spim_base.Exaspim.schema: V axis, Kadc, 1
+2023-03-28,12:30:29.424 INFO spim_core.spim_base.Exaspim.schema: V axis, Axis Enable, 1 [MC]
+2023-03-28,12:30:29.424 INFO spim_core.spim_base.Exaspim.schema: V axis, Motor Enable, 0
+2023-03-28,12:30:29.434 INFO spim_core.spim_base.Exaspim.schema: V axis, CMD_stat, NO_MOVE
+2023-03-28,12:30:29.434 INFO spim_core.spim_base.Exaspim.schema: V axis, Move_stat, IDLE
+2023-03-28,12:30:29.434 INFO spim_core.spim_base.Exaspim.schema: V axis, Current pos, 0.0000 ct
+2023-03-28,12:30:29.444 INFO spim_core.spim_base.Exaspim.schema: V axis, enc position, 0
+2023-03-28,12:30:29.444 INFO spim_core.spim_base.Exaspim.schema: V axis, Target pos, 0.0000 ct
+2023-03-28,12:30:29.444 INFO spim_core.spim_base.Exaspim.schema: V axis, enc target, 0
+2023-03-28,12:30:29.454 INFO spim_core.spim_base.Exaspim.schema: V axis, enc pos error, 0
+2023-03-28,12:30:29.454 INFO spim_core.spim_base.Exaspim.schema: V axis, EEsum, 0
+2023-03-28,12:30:29.463 INFO spim_core.spim_base.Exaspim.schema: V axis, Lst Stle Time, 0 ms
+2023-03-28,12:30:29.463 INFO spim_core.spim_base.Exaspim.schema: V axis, Av Settle Tim, 0 ms
+2023-03-28,12:30:29.463 INFO spim_core.spim_base.Exaspim.schema: V axis, Home position, 1000.00 ct
+2023-03-28,12:30:29.463 INFO spim_core.spim_base.Exaspim.schema: V axis, Motor Signal, 0
+2023-03-28,12:30:29.474 INFO spim_core.spim_base.Exaspim.schema: V axis, mm/sec/DAC_ct, 0.00000 [D]
+2023-03-28,12:30:29.474 INFO spim_core.spim_base.Exaspim.schema: V axis, Enc Cnts/ct, 1000.00 [C]
+2023-03-28,12:30:29.474 INFO spim_core.spim_base.Exaspim.schema: V axis, Wait Time, 0 [WT] ms
+2023-03-28,12:30:29.484 INFO spim_core.spim_base.Exaspim.schema: V axis, Maintain code, 0 [MA]
+2023-03-28,12:30:29.896 INFO spim_core.spim_base.Exaspim.schema: W axis, Axis Name ChF, W
+2023-03-28,12:30:29.896 INFO spim_core.spim_base.Exaspim.schema: W axis, Limits Status, 
+2023-03-28,12:30:29.896 INFO spim_core.spim_base.Exaspim.schema: W axis, Input Device, NONE [J]
+2023-03-28,12:30:29.906 INFO spim_core.spim_base.Exaspim.schema: W axis, Axis Profile, TLC
+2023-03-28,12:30:29.906 INFO spim_core.spim_base.Exaspim.schema: W axis, Max Lim, 32.768 [SU] ct
+2023-03-28,12:30:29.916 INFO spim_core.spim_base.Exaspim.schema: W axis, Min Lim, -32.768 [SL] ct
+2023-03-28,12:30:29.926 INFO spim_core.spim_base.Exaspim.schema: W axis, Ramp Time, 0.50 [AC] ms
+2023-03-28,12:30:29.926 INFO spim_core.spim_base.Exaspim.schema: W axis, Ramp Length, 0 enc
+2023-03-28,12:30:29.926 INFO spim_core.spim_base.Exaspim.schema: W axis, Run Speed, 4356.00000 [S]ct/s
+2023-03-28,12:30:29.936 INFO spim_core.spim_base.Exaspim.schema: W axis, vmax_enc* 1, 2178
+2023-03-28,12:30:29.936 INFO spim_core.spim_base.Exaspim.schema: W axis, Servo Lp Time, 0.50 ms
+2023-03-28,12:30:29.946 INFO spim_core.spim_base.Exaspim.schema: W axis, Enc Polarity, 1 [EP]
+2023-03-28,12:30:29.956 INFO spim_core.spim_base.Exaspim.schema: W axis, dv_enc, 2178
+2023-03-28,12:30:29.956 INFO spim_core.spim_base.Exaspim.schema: W axis, LL Axis ID, 27
+2023-03-28,12:30:29.956 INFO spim_core.spim_base.Exaspim.schema: W axis, Drift Error, 0.000000 [E] ct
+2023-03-28,12:30:29.965 INFO spim_core.spim_base.Exaspim.schema: W axis, enc_drift_err, 0
+2023-03-28,12:30:29.965 INFO spim_core.spim_base.Exaspim.schema: W axis, Finish Error, 0.000000 [PC] ct
+2023-03-28,12:30:29.965 INFO spim_core.spim_base.Exaspim.schema: W axis, enc_finsh_err, 0
+2023-03-28,12:30:29.976 INFO spim_core.spim_base.Exaspim.schema: W axis, Backlash, 0.000000 [B] ct
+2023-03-28,12:30:29.986 INFO spim_core.spim_base.Exaspim.schema: W axis, DAC offset, 32767
+2023-03-28,12:30:29.986 INFO spim_core.spim_base.Exaspim.schema: W axis, Overshoot, 0.000000 [OS] ct
+2023-03-28,12:30:29.996 INFO spim_core.spim_base.Exaspim.schema: W axis, enc_overshoot, 0
+2023-03-28,12:30:29.996 INFO spim_core.spim_base.Exaspim.schema: W axis, Kp, 0 [KP]
+2023-03-28,12:30:29.996 INFO spim_core.spim_base.Exaspim.schema: W axis, Ki(*16), 0 [KI]
+2023-03-28,12:30:30.006 INFO spim_core.spim_base.Exaspim.schema: W axis, Kv, 0 [KV]
+2023-03-28,12:30:30.016 INFO spim_core.spim_base.Exaspim.schema: W axis, Kd, 0 [KD]
+2023-03-28,12:30:30.016 INFO spim_core.spim_base.Exaspim.schema: W axis, Ka, 0 [KA]
+2023-03-28,12:30:30.026 INFO spim_core.spim_base.Exaspim.schema: W axis, Kadc, 1
+2023-03-28,12:30:30.026 INFO spim_core.spim_base.Exaspim.schema: W axis, Axis Enable, 1 [MC]
+2023-03-28,12:30:30.026 INFO spim_core.spim_base.Exaspim.schema: W axis, Motor Enable, 0
+2023-03-28,12:30:30.036 INFO spim_core.spim_base.Exaspim.schema: W axis, CMD_stat, NO_MOVE
+2023-03-28,12:30:30.036 INFO spim_core.spim_base.Exaspim.schema: W axis, Move_stat, IDLE
+2023-03-28,12:30:30.046 INFO spim_core.spim_base.Exaspim.schema: W axis, Current pos, 0.0000 ct
+2023-03-28,12:30:30.046 INFO spim_core.spim_base.Exaspim.schema: W axis, enc position, 0
+2023-03-28,12:30:30.056 INFO spim_core.spim_base.Exaspim.schema: W axis, Target pos, 0.0000 ct
+2023-03-28,12:30:30.056 INFO spim_core.spim_base.Exaspim.schema: W axis, enc target, 0
+2023-03-28,12:30:30.056 INFO spim_core.spim_base.Exaspim.schema: W axis, enc pos error, 0
+2023-03-28,12:30:30.065 INFO spim_core.spim_base.Exaspim.schema: W axis, EEsum, 0
+2023-03-28,12:30:30.065 INFO spim_core.spim_base.Exaspim.schema: W axis, Lst Stle Time, 0 ms
+2023-03-28,12:30:30.065 INFO spim_core.spim_base.Exaspim.schema: W axis, Av Settle Tim, 0 ms
+2023-03-28,12:30:30.076 INFO spim_core.spim_base.Exaspim.schema: W axis, Home position, 1000.00 ct
+2023-03-28,12:30:30.076 INFO spim_core.spim_base.Exaspim.schema: W axis, Motor Signal, 0
+2023-03-28,12:30:30.076 INFO spim_core.spim_base.Exaspim.schema: W axis, mm/sec/DAC_ct, 0.00000 [D]
+2023-03-28,12:30:30.086 INFO spim_core.spim_base.Exaspim.schema: W axis, Enc Cnts/ct, 1000.00 [C]
+2023-03-28,12:30:30.086 INFO spim_core.spim_base.Exaspim.schema: W axis, Wait Time, 0 [WT] ms
+2023-03-28,12:30:30.096 INFO spim_core.spim_base.Exaspim.schema: W axis, Maintain code, 0 [MA]
+2023-03-28,12:30:30.096 INFO spim_core.spim_base.Exaspim.schema: egrabber camera parameters
+2023-03-28,12:30:30.597 INFO spim_core.spim_base.Exaspim.schema: device, DeviceID, Device0
+2023-03-28,12:30:30.607 INFO spim_core.spim_base.Exaspim.schema: device, DeviceVendorName, VIEWORKS
+2023-03-28,12:30:30.607 INFO spim_core.spim_base.Exaspim.schema: device, DeviceModelName, VP-151MX-M6H0
+2023-03-28,12:30:30.607 INFO spim_core.spim_base.Exaspim.schema: device, DeviceAccessStatus, OpenReadWrite
+2023-03-28,12:30:30.616 INFO spim_core.spim_base.Exaspim.schema: device, DeviceType, CXP
+2023-03-28,12:30:30.618 INFO spim_core.spim_base.Exaspim.schema: device, DeviceDescription, [ABCDEFGH]
+2023-03-28,12:30:30.618 INFO spim_core.spim_base.Exaspim.schema: device, StreamSelector, 0
+2023-03-28,12:30:30.618 INFO spim_core.spim_base.Exaspim.schema: device, StreamID, Stream0
+2023-03-28,12:30:30.626 INFO spim_core.spim_base.Exaspim.schema: device, CxpLinkConfiguration, CXP6_X4
+2023-03-28,12:30:30.626 INFO spim_core.spim_base.Exaspim.schema: device, CxpLinkConfigurationOption, NeverWrite
+2023-03-28,12:30:30.636 INFO spim_core.spim_base.Exaspim.schema: device, CxpHostConnectionBase, A
+2023-03-28,12:30:30.636 INFO spim_core.spim_base.Exaspim.schema: device, CxpHostConnectionCount, 8
+2023-03-28,12:30:30.636 INFO spim_core.spim_base.Exaspim.schema: device, CxpPortAlignment, 0
+2023-03-28,12:30:30.636 INFO spim_core.spim_base.Exaspim.schema: device, RemoteDeviceEventSelector, GenICam
+2023-03-28,12:30:30.646 INFO spim_core.spim_base.Exaspim.schema: device, RemoteDeviceEventEnable, True
+2023-03-28,12:30:30.646 INFO spim_core.spim_base.Exaspim.schema: device, RemoteDeviceEventCount, 0
+2023-03-28,12:30:30.646 INFO spim_core.spim_base.Exaspim.schema: device, EventSelector, CameraTriggerRisingEdge
+2023-03-28,12:30:30.656 INFO spim_core.spim_base.Exaspim.schema: device, EventNotification, False
+2023-03-28,12:30:30.656 INFO spim_core.spim_base.Exaspim.schema: device, EventNotificationContext1, EventSpecific
+2023-03-28,12:30:30.666 INFO spim_core.spim_base.Exaspim.schema: device, EventNotificationContext2, EventSpecific
+2023-03-28,12:30:30.667 INFO spim_core.spim_base.Exaspim.schema: device, EventNotificationContext3, EventSpecific
+2023-03-28,12:30:30.667 INFO spim_core.spim_base.Exaspim.schema: device, EventCount, 0
+2023-03-28,12:30:30.667 INFO spim_core.spim_base.Exaspim.schema: device, ErrorSelector, All
+2023-03-28,12:30:30.677 INFO spim_core.spim_base.Exaspim.schema: device, ErrorCount, 0
+2023-03-28,12:30:30.677 INFO spim_core.spim_base.Exaspim.schema: device, CameraControlMethod, NC
+2023-03-28,12:30:30.677 INFO spim_core.spim_base.Exaspim.schema: device, C2CLinkConfiguration, Disconnected
+2023-03-28,12:30:30.687 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceScanType, Areascan
+2023-03-28,12:30:30.697 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceVendorName, VIEWORKS
+2023-03-28,12:30:30.707 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceModelName, VP-151MX-M6H0
+2023-03-28,12:30:30.707 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceManufacturerInfo, 
+2023-03-28,12:30:30.717 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceVersion, M:0.8.10 F:2.5.9
+2023-03-28,12:30:30.736 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceSerialNumber, MP151BBX006
+2023-03-28,12:30:30.746 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceUserID, 
+2023-03-28,12:30:30.746 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceSFNCVersionMajor, 2
+2023-03-28,12:30:30.746 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceSFNCVersionMinor, 0
+2023-03-28,12:30:30.758 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceSFNCVersionSubMinor, 0
+2023-03-28,12:30:30.758 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceManifestEntrySelector, 0
+2023-03-28,12:30:30.768 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceManifestXMLMajorVersion, 0
+2023-03-28,12:30:30.778 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceManifestXMLMinorVersion, 3
+2023-03-28,12:30:30.778 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceManifestXMLSubMinorVersion, 3
+2023-03-28,12:30:30.788 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceManifestSchemaMajorVersion, 1
+2023-03-28,12:30:30.788 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceManifestSchemaMinorVersion, 1
+2023-03-28,12:30:30.818 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceManifestPrimaryURL, Local:vc-150mx-0.3.3.zip;1FE00000;5484
+2023-03-28,12:30:30.828 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceTLType, CoaXPress
+2023-03-28,12:30:30.828 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceTLVersionMajor, 1
+2023-03-28,12:30:30.836 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceTLVersionMinor, 1
+2023-03-28,12:30:30.836 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceTLVersionSubMinor, 0
+2023-03-28,12:30:30.846 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceLinkSelector, 0
+2023-03-28,12:30:30.846 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceLinkSpeed, 2500.0
+2023-03-28,12:30:30.858 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceLinkThroughputLimit, 4000.0
+2023-03-28,12:30:30.868 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceLinkCommandTimeout, 300000.0
+2023-03-28,12:30:30.878 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceIndicatorMode, Active
+2023-03-28,12:30:30.898 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceTemperatureSelector, Mainboard
+2023-03-28,12:30:30.898 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceTemperature, 40.616546630859375
+2023-03-28,12:30:30.912 INFO spim_core.spim_base.Exaspim.schema: remote, Timestamp, 10018864414592805
+2023-03-28,12:30:30.912 INFO spim_core.spim_base.Exaspim.schema: remote, TimestampIncrement, 5
+2023-03-28,12:30:30.922 INFO spim_core.spim_base.Exaspim.schema: remote, TimestampResetValue, 0
+2023-03-28,12:30:30.932 INFO spim_core.spim_base.Exaspim.schema: remote, TimestampLatchValue, 0
+2023-03-28,12:30:30.942 INFO spim_core.spim_base.Exaspim.schema: remote, SensorWidth, 14192
+2023-03-28,12:30:30.952 INFO spim_core.spim_base.Exaspim.schema: remote, SensorHeight, 10640
+2023-03-28,12:30:30.963 INFO spim_core.spim_base.Exaspim.schema: remote, WidthMax, 14192
+2023-03-28,12:30:30.963 INFO spim_core.spim_base.Exaspim.schema: remote, HeightMax, 10640
+2023-03-28,12:30:30.973 INFO spim_core.spim_base.Exaspim.schema: remote, Width, 14192
+2023-03-28,12:30:30.973 INFO spim_core.spim_base.Exaspim.schema: remote, Height, 10640
+2023-03-28,12:30:30.983 INFO spim_core.spim_base.Exaspim.schema: remote, OffsetX, 0
+2023-03-28,12:30:30.993 INFO spim_core.spim_base.Exaspim.schema: remote, OffsetY, 0
+2023-03-28,12:30:31.003 INFO spim_core.spim_base.Exaspim.schema: remote, BinningSelector, Logic
+2023-03-28,12:30:31.013 INFO spim_core.spim_base.Exaspim.schema: remote, BinningHorizontalMode, Average
+2023-03-28,12:30:31.023 INFO spim_core.spim_base.Exaspim.schema: remote, BinningHorizontal, X1
+2023-03-28,12:30:31.033 INFO spim_core.spim_base.Exaspim.schema: remote, BinningVerticalMode, Average
+2023-03-28,12:30:31.042 INFO spim_core.spim_base.Exaspim.schema: remote, BinningVertical, X1
+2023-03-28,12:30:31.042 INFO spim_core.spim_base.Exaspim.schema: remote, ReverseX, False
+2023-03-28,12:30:31.052 INFO spim_core.spim_base.Exaspim.schema: remote, PixelFormat, Mono14
+2023-03-28,12:30:31.064 INFO spim_core.spim_base.Exaspim.schema: remote, TestPattern, Off
+2023-03-28,12:30:31.074 INFO spim_core.spim_base.Exaspim.schema: remote, DefectivePixelCorrection, True
+2023-03-28,12:30:31.084 INFO spim_core.spim_base.Exaspim.schema: remote, DynamicDefectivePixelCorrection, False
+2023-03-28,12:30:31.084 INFO spim_core.spim_base.Exaspim.schema: remote, DefectivePixelOffsetThreshold, 1024.0
+2023-03-28,12:30:31.104 INFO spim_core.spim_base.Exaspim.schema: remote, AcquisitionMode, Continuous
+2023-03-28,12:30:31.114 INFO spim_core.spim_base.Exaspim.schema: remote, AcquisitionFrameRate, 4.0
+2023-03-28,12:30:31.114 INFO spim_core.spim_base.Exaspim.schema: remote, AcquisitionStatus, False
+2023-03-28,12:30:31.124 INFO spim_core.spim_base.Exaspim.schema: remote, TriggerSelector, ExposureStart
+2023-03-28,12:30:31.134 INFO spim_core.spim_base.Exaspim.schema: remote, TriggerMode, On
+2023-03-28,12:30:31.134 INFO spim_core.spim_base.Exaspim.schema: remote, TriggerSource, Line0
+2023-03-28,12:30:31.143 INFO spim_core.spim_base.Exaspim.schema: remote, TriggerActivation, RisingEdge
+2023-03-28,12:30:31.153 INFO spim_core.spim_base.Exaspim.schema: remote, ExposureMode, Timed
+2023-03-28,12:30:31.164 INFO spim_core.spim_base.Exaspim.schema: remote, ExposureTime, 4905.60009765625
+2023-03-28,12:30:31.174 INFO spim_core.spim_base.Exaspim.schema: remote, LineSelector, Line1
+2023-03-28,12:30:31.184 INFO spim_core.spim_base.Exaspim.schema: remote, LineMode, Output
+2023-03-28,12:30:31.194 INFO spim_core.spim_base.Exaspim.schema: remote, LineInverter, False
+2023-03-28,12:30:31.204 INFO spim_core.spim_base.Exaspim.schema: remote, LineSource, Strobe
+2023-03-28,12:30:31.204 INFO spim_core.spim_base.Exaspim.schema: remote, UserOutputSelector, UserOutput0
+2023-03-28,12:30:31.214 INFO spim_core.spim_base.Exaspim.schema: remote, UserOutputValue, False
+2023-03-28,12:30:31.224 INFO spim_core.spim_base.Exaspim.schema: remote, DebounceTime, 0.5
+2023-03-28,12:30:31.234 INFO spim_core.spim_base.Exaspim.schema: remote, TimerSelector, Timer0
+2023-03-28,12:30:31.245 INFO spim_core.spim_base.Exaspim.schema: remote, TimerDuration, 1.0
+2023-03-28,12:30:31.255 INFO spim_core.spim_base.Exaspim.schema: remote, TimerDelay, 0.0
+2023-03-28,12:30:31.266 INFO spim_core.spim_base.Exaspim.schema: remote, TimerValue, 3001030400.0
+2023-03-28,12:30:31.267 INFO spim_core.spim_base.Exaspim.schema: remote, TimerStatus, TimerIdle
+2023-03-28,12:30:31.273 INFO spim_core.spim_base.Exaspim.schema: remote, TimerTriggerSource, Off
+2023-03-28,12:30:31.294 INFO spim_core.spim_base.Exaspim.schema: remote, TimerTriggerActivation, LevelHigh
+2023-03-28,12:30:31.304 INFO spim_core.spim_base.Exaspim.schema: remote, GainSelector, DigitalAll
+2023-03-28,12:30:31.314 INFO spim_core.spim_base.Exaspim.schema: remote, Gain, 1.0
+2023-03-28,12:30:31.324 INFO spim_core.spim_base.Exaspim.schema: remote, BlackLevelSelector, DigitalAll
+2023-03-28,12:30:31.334 INFO spim_core.spim_base.Exaspim.schema: remote, BlackLevel, 0.0
+2023-03-28,12:30:31.354 INFO spim_core.spim_base.Exaspim.schema: remote, TargetTemperature, 0
+2023-03-28,12:30:31.366 INFO spim_core.spim_base.Exaspim.schema: remote, FanOperationMode, On
+2023-03-28,12:30:31.366 INFO spim_core.spim_base.Exaspim.schema: remote, FanSpeed, 2593.73779296875
+2023-03-28,12:30:31.376 INFO spim_core.spim_base.Exaspim.schema: remote, PeltierOperationMode, On
+2023-03-28,12:30:31.386 INFO spim_core.spim_base.Exaspim.schema: remote, HotPixelCorrection, On
+2023-03-28,12:30:31.406 INFO spim_core.spim_base.Exaspim.schema: remote, FlatFieldCorrection, Off
+2023-03-28,12:30:31.414 INFO spim_core.spim_base.Exaspim.schema: remote, FlatFieldDataSelector, Space0
+2023-03-28,12:30:31.414 INFO spim_core.spim_base.Exaspim.schema: remote, FlatFieldTargetSelector, Auto
+2023-03-28,12:30:31.424 INFO spim_core.spim_base.Exaspim.schema: remote, FlatFieldTargetLevel, 0
+2023-03-28,12:30:31.444 INFO spim_core.spim_base.Exaspim.schema: remote, SequencerMode, Off
+2023-03-28,12:30:31.444 INFO spim_core.spim_base.Exaspim.schema: remote, SequencerConfigurationMode, Off
+2023-03-28,12:30:31.454 INFO spim_core.spim_base.Exaspim.schema: remote, SequencerSetSelector, 0
+2023-03-28,12:30:31.454 INFO spim_core.spim_base.Exaspim.schema: remote, SequencerSetActive, 0
+2023-03-28,12:30:31.465 INFO spim_core.spim_base.Exaspim.schema: remote, SequencerSetCount, 1
+2023-03-28,12:30:31.475 INFO spim_core.spim_base.Exaspim.schema: remote, TestPendingAck, 0
+2023-03-28,12:30:31.485 INFO spim_core.spim_base.Exaspim.schema: remote, PayloadSize, 302005760
+2023-03-28,12:30:31.495 INFO spim_core.spim_base.Exaspim.schema: remote, DeviceTapGeometry, Geometry_1X_1Y
+2023-03-28,12:30:31.495 INFO spim_core.spim_base.Exaspim.schema: remote, Image1StreamID, 0
+2023-03-28,12:30:31.514 INFO spim_core.spim_base.Exaspim.schema: remote, UserSetSelector, UserSet1
+2023-03-28,12:30:31.524 INFO spim_core.spim_base.Exaspim.schema: remote, UserSetDefault, UserSet1
+2023-03-28,12:30:31.534 INFO spim_core.spim_base.Exaspim.schema: remote, CxpLinkConfigurationPreferredSwitch, CXP6_X4
+2023-03-28,12:30:31.544 INFO spim_core.spim_base.Exaspim.schema: remote, CxpLinkConfigurationPreferred, CXP6_X4
+2023-03-28,12:30:31.544 INFO spim_core.spim_base.Exaspim.schema: remote, CxpLinkConfiguration, CXP6_X4
+2023-03-28,12:30:31.554 INFO spim_core.spim_base.Exaspim.schema: remote, CxpConnectionSelector, 0
+2023-03-28,12:30:31.554 INFO spim_core.spim_base.Exaspim.schema: remote, CxpConnectionTestMode, Off
+2023-03-28,12:30:31.565 INFO spim_core.spim_base.Exaspim.schema: remote, CxpConnectionTestErrorCount, 0
+2023-03-28,12:30:31.565 INFO spim_core.spim_base.Exaspim.schema: remote, CxpConnectionTestPacketCount, 0
+2023-03-28,12:30:31.575 INFO spim_core.spim_base.Exaspim.schema: stream, StreamID, Stream0
+2023-03-28,12:30:31.585 INFO spim_core.spim_base.Exaspim.schema: stream, StreamType, CXP
+2023-03-28,12:30:31.644 INFO spim_core.spim_base.Exaspim.schema: stream, StreamConfigurationStatus, OK
+2023-03-28,12:30:31.976 INFO spim_core.spim_base.Exaspim.schema: stream, PixelFormat, Mono16
+2023-03-28,12:30:32.076 INFO spim_core.spim_base.Exaspim.schema: stream, PixelFormatNamespace, PFNC_32BIT
+2023-03-28,12:30:32.266 INFO spim_core.spim_base.Exaspim.schema: stream, PixelSize, 16
+2023-03-28,12:30:32.454 INFO spim_core.spim_base.Exaspim.schema: stream, PixelComponentCount, 1
+2023-03-28,12:30:32.554 INFO spim_core.spim_base.Exaspim.schema: stream, Width, 14192
+2023-03-28,12:30:32.666 INFO spim_core.spim_base.Exaspim.schema: stream, Height, 10640
+2023-03-28,12:30:32.666 INFO spim_core.spim_base.Exaspim.schema: stream, ImageFormatSource, RemoteDevice
+2023-03-28,12:30:32.686 INFO spim_core.spim_base.Exaspim.schema: stream, RemotePixelFormat, Mono14pmsb
+2023-03-28,12:30:32.706 INFO spim_core.spim_base.Exaspim.schema: stream, RemoteWidth, 14192
+2023-03-28,12:30:32.714 INFO spim_core.spim_base.Exaspim.schema: stream, RemoteHeight, 10640
+2023-03-28,12:30:32.866 INFO spim_core.spim_base.Exaspim.schema: stream, PayloadSize, 302005760
+2023-03-28,12:30:32.876 INFO spim_core.spim_base.Exaspim.schema: stream, StreamAnnouncedBufferCount, 8
+2023-03-28,12:30:32.876 INFO spim_core.spim_base.Exaspim.schema: stream, StreamBufferHandlingMode, Default
+2023-03-28,12:30:32.886 INFO spim_core.spim_base.Exaspim.schema: stream, StreamAnnounceBufferMinimum, 1
+2023-03-28,12:30:32.896 INFO spim_core.spim_base.Exaspim.schema: stream, StreamAcquisitionModeSelector, Default
+2023-03-28,12:30:32.909 INFO spim_core.spim_base.Exaspim.schema: stream, BufferAllocationAlignmentControl, Disable
+2023-03-28,12:30:32.914 INFO spim_core.spim_base.Exaspim.schema: stream, BufferInfoSource, ImageHeader
+2023-03-28,12:30:32.924 INFO spim_core.spim_base.Exaspim.schema: stream, UnpackingMode, Msb
+2023-03-28,12:30:32.934 INFO spim_core.spim_base.Exaspim.schema: stream, RedBlueSwap, False
+2023-03-28,12:30:32.934 INFO spim_core.spim_base.Exaspim.schema: stream, DmaEngineOptimization, Default
+2023-03-28,12:30:32.944 INFO spim_core.spim_base.Exaspim.schema: stream, DmaEngineMaxQueueSize, 100
+2023-03-28,12:30:32.944 INFO spim_core.spim_base.Exaspim.schema: stream, TriggerToCameraReadoutTimeout, 0
+2023-03-28,12:30:32.944 INFO spim_core.spim_base.Exaspim.schema: stream, CameraReadoutTimeout, 0
+2023-03-28,12:30:32.954 INFO spim_core.spim_base.Exaspim.schema: stream, LineWidth, 0
+2023-03-28,12:30:32.966 INFO spim_core.spim_base.Exaspim.schema: stream, LinePitch, 0
+2023-03-28,12:30:32.976 INFO spim_core.spim_base.Exaspim.schema: stream, StripeHeight, 0
+2023-03-28,12:30:32.976 INFO spim_core.spim_base.Exaspim.schema: stream, StripePitch, 0
+2023-03-28,12:30:32.976 INFO spim_core.spim_base.Exaspim.schema: stream, BlockHeight, 0
+2023-03-28,12:30:32.986 INFO spim_core.spim_base.Exaspim.schema: stream, StripeOffset, 0
+2023-03-28,12:30:32.986 INFO spim_core.spim_base.Exaspim.schema: stream, StripeArrangement, Geometry_1X_1Y
+2023-03-28,12:30:32.996 INFO spim_core.spim_base.Exaspim.schema: stream, BufferPartCount, 1
+2023-03-28,12:30:32.996 INFO spim_core.spim_base.Exaspim.schema: stream, ErrorSelector, All
+2023-03-28,12:30:33.006 INFO spim_core.spim_base.Exaspim.schema: stream, ErrorCount, 0
+2023-03-28,12:30:33.006 INFO spim_core.spim_base.Exaspim.schema: stream, LUTConfiguration, M_8x8
+2023-03-28,12:30:33.014 INFO spim_core.spim_base.Exaspim.schema: stream, LUTLength, 256
+2023-03-28,12:30:33.014 INFO spim_core.spim_base.Exaspim.schema: stream, LUTMaxValue, 255
+2023-03-28,12:30:33.014 INFO spim_core.spim_base.Exaspim.schema: stream, LUTSet, Set1
+2023-03-28,12:30:33.024 INFO spim_core.spim_base.Exaspim.schema: stream, LUTIndex, 0
+2023-03-28,12:30:33.024 INFO spim_core.spim_base.Exaspim.schema: stream, LUTValue, 0x00
+2023-03-28,12:30:33.034 INFO spim_core.spim_base.Exaspim.schema: stream, LUTReadBlockLength, 1
+2023-03-28,12:30:33.034 INFO spim_core.spim_base.Exaspim.schema: stream, LUTEnable, Off
+2023-03-28,12:30:33.044 INFO spim_core.spim_base.Exaspim.schema: stream, EventSelector, StartOfCameraReadout
+2023-03-28,12:30:33.044 INFO spim_core.spim_base.Exaspim.schema: stream, EventNotification, False
+2023-03-28,12:30:33.054 INFO spim_core.spim_base.Exaspim.schema: stream, EventNotificationContext1, EventSpecific
+2023-03-28,12:30:33.054 INFO spim_core.spim_base.Exaspim.schema: stream, EventNotificationContext2, EventSpecific
+2023-03-28,12:30:33.066 INFO spim_core.spim_base.Exaspim.schema: stream, EventNotificationContext3, EventSpecific
+2023-03-28,12:30:33.066 INFO spim_core.spim_base.Exaspim.schema: stream, EventCount, 1321851
+2023-03-28,12:30:33.066 INFO spim_core.spim_base.Exaspim.schema: stream, StatisticsSamplingSelector, LastSecond
+2023-03-28,12:30:33.076 INFO spim_core.spim_base.Exaspim.schema: stream, StatisticsFrameRate, 0.0
+2023-03-28,12:30:33.076 INFO spim_core.spim_base.Exaspim.schema: stream, StatisticsLineRate, 0.0
+2023-03-28,12:30:33.086 INFO spim_core.spim_base.Exaspim.schema: stream, StatisticsDataRate, 0.0
+2023-03-28,12:30:34.419 INFO spim_core.spim_base.Exaspim.schema: interface, InterfaceID, PC3602 - Coaxlink Octo (1-camera) - KOC01387
+2023-03-28,12:30:34.421 INFO spim_core.spim_base.Exaspim.schema: interface, InterfaceType, CXP
+2023-03-28,12:30:34.421 INFO spim_core.spim_base.Exaspim.schema: interface, ProductCode, PC3602
+2023-03-28,12:30:34.429 INFO spim_core.spim_base.Exaspim.schema: interface, SerialNumber, KOC01387
+2023-03-28,12:30:34.429 INFO spim_core.spim_base.Exaspim.schema: interface, PartNumber, 00006006-89
+2023-03-28,12:30:34.429 INFO spim_core.spim_base.Exaspim.schema: interface, FirmwareRevision, 387
+2023-03-28,12:30:34.429 INFO spim_core.spim_base.Exaspim.schema: interface, FirmwareVariant, 1
+2023-03-28,12:30:34.429 INFO spim_core.spim_base.Exaspim.schema: interface, FirmwareStatus, OK
+2023-03-28,12:30:34.441 INFO spim_core.spim_base.Exaspim.schema: interface, FirmwareRecoverySwitch, False
+2023-03-28,12:30:34.441 INFO spim_core.spim_base.Exaspim.schema: interface, DeviceSelector, 0
+2023-03-28,12:30:34.449 INFO spim_core.spim_base.Exaspim.schema: interface, DeviceID, Device0
+2023-03-28,12:30:34.449 INFO spim_core.spim_base.Exaspim.schema: interface, DeviceVendorName, VIEWORKS
+2023-03-28,12:30:34.451 INFO spim_core.spim_base.Exaspim.schema: interface, DeviceModelName, VP-151MX-M6H0
+2023-03-28,12:30:34.460 INFO spim_core.spim_base.Exaspim.schema: interface, DeviceAccessStatus, OpenReadWrite
+2023-03-28,12:30:34.461 INFO spim_core.spim_base.Exaspim.schema: interface, CxpPoCxpHostConnectionSelector, All
+2023-03-28,12:30:34.469 INFO spim_core.spim_base.Exaspim.schema: interface, CxpPoCxpDetectionMode, Extended
+2023-03-28,12:30:34.469 INFO spim_core.spim_base.Exaspim.schema: interface, CxpPoCxpConfigurationStatus, Auto
+2023-03-28,12:30:34.509 INFO spim_core.spim_base.Exaspim.schema: interface, CxpPoCxpStatus, Off
+2023-03-28,12:30:34.519 INFO spim_core.spim_base.Exaspim.schema: interface, CxpPoCxpCurrent, 0.0
+2023-03-28,12:30:34.519 INFO spim_core.spim_base.Exaspim.schema: interface, CxpPoCxpVoltage, 0.0
+2023-03-28,12:30:34.519 INFO spim_core.spim_base.Exaspim.schema: interface, CxpPoCxpPowerInputStatus, OK
+2023-03-28,12:30:34.519 INFO spim_core.spim_base.Exaspim.schema: interface, CxpHostConnectionCount, 8
+2023-03-28,12:30:34.529 INFO spim_core.spim_base.Exaspim.schema: interface, CxpHostConnectionSelector, A
+2023-03-28,12:30:34.529 INFO spim_core.spim_base.Exaspim.schema: interface, CxpConnectionState, Detected
+2023-03-28,12:30:34.529 INFO spim_core.spim_base.Exaspim.schema: interface, CxpDownConnectionSpeed, CXP6
+2023-03-28,12:30:34.539 INFO spim_core.spim_base.Exaspim.schema: interface, CxpDeviceConnectionID, CameraW_Master
+2023-03-28,12:30:34.539 INFO spim_core.spim_base.Exaspim.schema: interface, CXP1Supported, True
+2023-03-28,12:30:34.539 INFO spim_core.spim_base.Exaspim.schema: interface, CXP2Supported, True
+2023-03-28,12:30:34.539 INFO spim_core.spim_base.Exaspim.schema: interface, CXP3Supported, True
+2023-03-28,12:30:34.549 INFO spim_core.spim_base.Exaspim.schema: interface, CXP5Supported, True
+2023-03-28,12:30:34.549 INFO spim_core.spim_base.Exaspim.schema: interface, CXP6Supported, True
+2023-03-28,12:30:34.549 INFO spim_core.spim_base.Exaspim.schema: interface, CXP10Supported, False
+2023-03-28,12:30:34.559 INFO spim_core.spim_base.Exaspim.schema: interface, CXP12Supported, False
+2023-03-28,12:30:34.561 INFO spim_core.spim_base.Exaspim.schema: interface, CxpHostConnectionTestMode, Off
+2023-03-28,12:30:34.561 INFO spim_core.spim_base.Exaspim.schema: interface, CxpHostConnectionTestErrorCount, 0
+2023-03-28,12:30:34.561 INFO spim_core.spim_base.Exaspim.schema: interface, CxpHostConnectionTestPacketCountRx, 0
+2023-03-28,12:30:34.561 INFO spim_core.spim_base.Exaspim.schema: interface, CxpHostConnectionTestPacketCountTx, 0
+2023-03-28,12:30:34.561 INFO spim_core.spim_base.Exaspim.schema: interface, CxpRevisionSelector, CXP_1_0
+2023-03-28,12:30:34.569 INFO spim_core.spim_base.Exaspim.schema: interface, CxpRevisionSupport, Supported
+2023-03-28,12:30:34.569 INFO spim_core.spim_base.Exaspim.schema: interface, ShowCoaXPressAdvancedFeatures, False
+2023-03-28,12:30:34.569 INFO spim_core.spim_base.Exaspim.schema: interface, CxpLinkLockLossCount, 3
+2023-03-28,12:30:34.569 INFO spim_core.spim_base.Exaspim.schema: interface, Cxp8b10bErrorCount, 1527
+2023-03-28,12:30:34.569 INFO spim_core.spim_base.Exaspim.schema: interface, CxpDuplicatedCharactersCorrectedErrorCount, 0
+2023-03-28,12:30:34.569 INFO spim_core.spim_base.Exaspim.schema: interface, CxpDuplicatedCharactersUncorrectedErrorCount, 0
+2023-03-28,12:30:34.579 INFO spim_core.spim_base.Exaspim.schema: interface, CxpStreamDataPacketCrcErrorCount, 0
+2023-03-28,12:30:34.579 INFO spim_core.spim_base.Exaspim.schema: interface, CxpControlPacketCrcErrorCount, 0
+2023-03-28,12:30:34.579 INFO spim_core.spim_base.Exaspim.schema: interface, CxpEventPacketCrcErrorCount, 0
+2023-03-28,12:30:34.589 INFO spim_core.spim_base.Exaspim.schema: interface, LineSelector, DIN11
+2023-03-28,12:30:34.589 INFO spim_core.spim_base.Exaspim.schema: interface, LineFormat, DIFF
+2023-03-28,12:30:34.589 INFO spim_core.spim_base.Exaspim.schema: interface, LineMode, Input
+2023-03-28,12:30:34.599 INFO spim_core.spim_base.Exaspim.schema: interface, LineInverter, False
+2023-03-28,12:30:34.599 INFO spim_core.spim_base.Exaspim.schema: interface, LineFilterStrength, Lowest
+2023-03-28,12:30:34.599 INFO spim_core.spim_base.Exaspim.schema: interface, LineFilterDelay, 0.05
+2023-03-28,12:30:34.609 INFO spim_core.spim_base.Exaspim.schema: interface, LineStatus, True
+2023-03-28,12:30:34.609 INFO spim_core.spim_base.Exaspim.schema: interface, LineStatusAll, 366503526403
+2023-03-28,12:30:34.609 INFO spim_core.spim_base.Exaspim.schema: interface, UserOutputValueAll, 0
+2023-03-28,12:30:34.619 INFO spim_core.spim_base.Exaspim.schema: interface, UserActions, 0
+2023-03-28,12:30:34.619 INFO spim_core.spim_base.Exaspim.schema: interface, UserActionsSchedulerReference, InternalTime
+2023-03-28,12:30:34.619 INFO spim_core.spim_base.Exaspim.schema: interface, ScheduledUserActionsPoolStatus, Empty
+2023-03-28,12:30:34.629 INFO spim_core.spim_base.Exaspim.schema: interface, InternalTime, 3434212727
+2023-03-28,12:30:34.629 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeMaxPayloadSizeSupported, 512
+2023-03-28,12:30:34.629 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeMaxPayloadSize, 512
+2023-03-28,12:30:34.629 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeMaxReadRequestSize, 512
+2023-03-28,12:30:34.639 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeMaxLinkSpeed, PCIeLinkSpeed8000MTps
+2023-03-28,12:30:34.639 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeCurrentLinkSpeed, PCIeLinkSpeed8000MTps
+2023-03-28,12:30:34.639 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeMaximumLinkWidth, x8
+2023-03-28,12:30:34.649 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeNegotiatedLinkWidth, x8
+2023-03-28,12:30:34.649 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeLinkSpeed2500MTpsSupported, True
+2023-03-28,12:30:34.649 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeLinkSpeed5000MTpsSupported, True
+2023-03-28,12:30:34.649 INFO spim_core.spim_base.Exaspim.schema: interface, PCIeLinkSpeed8000MTpsSupported, True
+2023-03-28,12:30:34.661 INFO spim_core.spim_base.Exaspim.schema: interface, PCIBus, 49
+2023-03-28,12:30:34.661 INFO spim_core.spim_base.Exaspim.schema: interface, PCIDevice, 0
+2023-03-28,12:30:34.661 INFO spim_core.spim_base.Exaspim.schema: interface, PCIFunction, 0
+2023-03-28,12:30:34.669 INFO spim_core.spim_base.Exaspim.schema: interface, PCISlot, 4
+2023-03-28,12:30:34.669 INFO spim_core.spim_base.Exaspim.schema: interface, FanStatus, OK
+2023-03-28,12:30:34.669 INFO spim_core.spim_base.Exaspim.schema: interface, TemperatureSensorSelector, Grabber
+2023-03-28,12:30:34.669 INFO spim_core.spim_base.Exaspim.schema: interface, Temperature, 43.67998657226565
+2023-03-28,12:30:34.679 INFO spim_core.spim_base.Exaspim.schema: interface, AuxiliaryPowerInput, Connected
+2023-03-28,12:30:34.679 INFO spim_core.spim_base.Exaspim.schema: interface, AuxiliaryPower12VInput, OK
+2023-03-28,12:30:34.679 INFO spim_core.spim_base.Exaspim.schema: interface, LampMode, Standard
+2023-03-28,12:30:34.689 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomValue, 0
+2023-03-28,12:30:34.689 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomLedA, False
+2023-03-28,12:30:34.689 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomLedB, False
+2023-03-28,12:30:34.699 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomLedC, False
+2023-03-28,12:30:34.699 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomLedD, False
+2023-03-28,12:30:34.699 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomLedE, False
+2023-03-28,12:30:34.699 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomLedF, False
+2023-03-28,12:30:34.709 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomLedG, False
+2023-03-28,12:30:34.709 INFO spim_core.spim_base.Exaspim.schema: interface, LampCustomLedH, False
+2023-03-28,12:30:34.709 INFO spim_core.spim_base.Exaspim.schema: interface, BoardCapabilities, 0x1112103f82121814
+2023-03-28,12:30:34.719 INFO spim_core.spim_base.Exaspim.schema: interface, FirmwareBoardID, 18
+2023-03-28,12:30:34.719 INFO spim_core.spim_base.Exaspim.schema: interface, CPLDRevision, 1
+2023-03-28,12:30:34.729 INFO spim_core.spim_base.Exaspim.schema: interface, PreviousBootBank, 0
+2023-03-28,12:30:34.899 INFO spim_core.spim_base.Exaspim.schema: interface, NextBootBank, 0
+2023-03-28,12:30:35.080 INFO spim_core.spim_base.Exaspim.schema: interface, CurrentBankSelect, 0
+2023-03-28,12:30:35.090 INFO spim_core.spim_base.Exaspim.schema: interface, CurrentBankSelectReadback, 0
+2023-03-28,12:30:35.260 INFO spim_core.spim_base.Exaspim.schema: interface, NextBankSelect, 0
+2023-03-28,12:30:35.261 INFO spim_core.spim_base.Exaspim.schema: interface, SpiBankStatus, 64
+2023-03-28,12:30:35.430 INFO spim_core.spim_base.Exaspim.schema: interface, PotBankStatus, 0
+2023-03-28,12:30:35.430 INFO spim_core.spim_base.Exaspim.schema: interface, EventSelector, LIN1
+2023-03-28,12:30:35.440 INFO spim_core.spim_base.Exaspim.schema: interface, EventNotification, False
+2023-03-28,12:30:35.461 INFO spim_core.spim_base.Exaspim.schema: interface, EventNotificationContext1, EventSpecific
+2023-03-28,12:30:35.462 INFO spim_core.spim_base.Exaspim.schema: interface, EventNotificationContext2, EventSpecific
+2023-03-28,12:30:35.470 INFO spim_core.spim_base.Exaspim.schema: interface, EventNotificationContext3, EventSpecific
+2023-03-28,12:30:35.470 INFO spim_core.spim_base.Exaspim.schema: interface, EventCount, 0
+2023-03-28,12:30:35.480 INFO spim_core.spim_base.Exaspim.schema: interface, OemSafetyKeyVerification, ProgrammingKeyOrEncryptedKey
+2023-03-28,12:30:35.480 INFO spim_core.spim_base.Exaspim.schema: interface, EncryptedOemSafetyKey, 
+2023-03-28,12:30:35.490 INFO spim_core.spim_base.Exaspim.schema: interface, MaximumOemKeyLength, 4096
+2023-03-28,12:30:35.490 INFO spim_core.spim_base.Exaspim.schema: interface, LineInputToolSelector, LIN1
+2023-03-28,12:30:35.500 INFO spim_core.spim_base.Exaspim.schema: interface, LineInputToolSource, DIN11
+2023-03-28,12:30:35.500 INFO spim_core.spim_base.Exaspim.schema: interface, LineInputToolActivation, RisingEdge
+2023-03-28,12:30:35.510 INFO spim_core.spim_base.Exaspim.schema: interface, MultiplierDividerToolSelector, MDV1
+2023-03-28,12:30:35.530 INFO spim_core.spim_base.Exaspim.schema: interface, MultiplierDividerToolSource, NONE
+2023-03-28,12:30:35.530 INFO spim_core.spim_base.Exaspim.schema: interface, MultiplierDividerToolOutputControl, Disable
+2023-03-28,12:30:35.540 INFO spim_core.spim_base.Exaspim.schema: interface, MultiplierDividerToolMultiplicationFactor, 1.0
+2023-03-28,12:30:35.540 INFO spim_core.spim_base.Exaspim.schema: interface, MultiplierDividerToolDivisionFactor, 1.0
+2023-03-28,12:30:35.540 INFO spim_core.spim_base.Exaspim.schema: interface, MultiplierDividerToolEffectiveMultiplicationFactor, 512
+2023-03-28,12:30:35.550 INFO spim_core.spim_base.Exaspim.schema: interface, MultiplierDividerToolEffectiveDivisionFactor, 512
+2023-03-28,12:30:35.550 INFO spim_core.spim_base.Exaspim.schema: interface, QuadratureDecoderToolSelector, QDC1
+2023-03-28,12:30:35.550 INFO spim_core.spim_base.Exaspim.schema: interface, QuadratureDecoderToolSources, DIN11_DIN12
+2023-03-28,12:30:35.562 INFO spim_core.spim_base.Exaspim.schema: interface, QuadratureDecoderToolActivation, RisingEdgeA
+2023-03-28,12:30:35.562 INFO spim_core.spim_base.Exaspim.schema: interface, QuadratureDecoderToolForwardDirection, A_Leads_B
+2023-03-28,12:30:35.562 INFO spim_core.spim_base.Exaspim.schema: interface, QuadratureDecoderToolOutputMode, Unfiltered
+2023-03-28,12:30:35.562 INFO spim_core.spim_base.Exaspim.schema: interface, QuadratureDecoderToolPosition, 0
+2023-03-28,12:30:35.571 INFO spim_core.spim_base.Exaspim.schema: interface, QuadratureDecoderToolDirection, Backward
+2023-03-28,12:30:35.571 INFO spim_core.spim_base.Exaspim.schema: interface, DividerToolSelector, DIV1
+2023-03-28,12:30:35.581 INFO spim_core.spim_base.Exaspim.schema: interface, DividerToolSource, NONE
+2023-03-28,12:30:35.581 INFO spim_core.spim_base.Exaspim.schema: interface, DividerToolEnableControl, Disable
+2023-03-28,12:30:35.591 INFO spim_core.spim_base.Exaspim.schema: interface, DividerToolDivisionFactor, 2
+2023-03-28,12:30:35.591 INFO spim_core.spim_base.Exaspim.schema: interface, DividerToolInitialOffset, 0
+2023-03-28,12:30:35.591 INFO spim_core.spim_base.Exaspim.schema: interface, DelayToolSelector, DEL1
+2023-03-28,12:30:35.601 INFO spim_core.spim_base.Exaspim.schema: interface, DelayToolSource1, NONE
+2023-03-28,12:30:35.611 INFO spim_core.spim_base.Exaspim.schema: interface, DelayToolSource2, NONE
+2023-03-28,12:30:35.611 INFO spim_core.spim_base.Exaspim.schema: interface, DelayToolClockSource, NONE
+2023-03-28,12:30:35.621 INFO spim_core.spim_base.Exaspim.schema: interface, DelayToolDelayValue, 1
+2023-03-28,12:30:35.621 INFO spim_core.spim_base.Exaspim.schema: interface, C2CLinkSynchronizationToolSelector, C2C1
+2023-03-28,12:30:35.631 INFO spim_core.spim_base.Exaspim.schema: interface, C2CLinkSynchronizationToolSource, CycleTrigger
+2023-03-28,12:30:35.631 INFO spim_core.spim_base.Exaspim.schema: interface, C2CLinkSynchronizationToolClock, Immediate
+2023-03-28,12:30:35.631 INFO spim_core.spim_base.Exaspim.schema: interface, DeviceLinkTriggerToolSelector, DLT1
+2023-03-28,12:30:35.641 INFO spim_core.spim_base.Exaspim.schema: interface, DeviceLinkTriggerToolDevice, Device0
+2023-03-28,12:30:35.641 INFO spim_core.spim_base.Exaspim.schema: interface, DeviceLinkTriggerToolLinkTrigger, None
+2023-03-28,12:30:35.651 INFO spim_core.spim_base.Exaspim.schema: system, TLVendorName, Euresys
+2023-03-28,12:30:35.651 INFO spim_core.spim_base.Exaspim.schema: system, TLModelName, Coaxlink
+2023-03-28,12:30:35.651 INFO spim_core.spim_base.Exaspim.schema: system, TLID, EuresysCoaxlink-22.1.0.3
+2023-03-28,12:30:35.661 INFO spim_core.spim_base.Exaspim.schema: system, TLVersion, 22.1.0.3
+2023-03-28,12:30:35.662 INFO spim_core.spim_base.Exaspim.schema: system, TLPath, C:\Program Files\Euresys\eGrabber\cti\x86_64\coaxlink.cti
+2023-03-28,12:30:35.662 INFO spim_core.spim_base.Exaspim.schema: system, TLType, CXP
+2023-03-28,12:30:35.662 INFO spim_core.spim_base.Exaspim.schema: system, GenTLVersionMajor, 1
+2023-03-28,12:30:35.671 INFO spim_core.spim_base.Exaspim.schema: system, GenTLVersionMinor, 5
+2023-03-28,12:30:35.671 INFO spim_core.spim_base.Exaspim.schema: system, InterfaceSelector, 0
+2023-03-28,12:30:35.671 INFO spim_core.spim_base.Exaspim.schema: system, InterfaceID, PC3602 - Coaxlink Octo (1-camera) - KOC01387
+2023-03-28,12:30:36.500 INFO spim_core.spim_base.Exaspim.schema: tile parameters
+2023-03-28,12:30:37.033 INFO spim_core.spim_base.Exaspim.schema: tile_number, 0
+2023-03-28,12:30:37.120 INFO spim_core.spim_base.Exaspim.schema: etl_temperature, 23.500 degrees celsius
+2023-03-28,12:30:37.140 INFO spim_core.spim_base.Exaspim.schema: camera_board_temperature, 40.6654052734375 degrees celsius
+2023-03-28,12:30:37.150 INFO spim_core.spim_base.Exaspim.schema: sensor_temperature, 4.93218994140625 degrees celsius
+2023-03-28,12:30:37.161 INFO spim_core.spim_base.Exaspim.schema: file_name, tile_x_0000_y_0000_z_0000_ch_561.ims
+2023-03-28,12:30:37.162 INFO spim_core.spim_base.Exaspim.schema: channel_name, 561
+2023-03-28,12:30:37.162 INFO spim_core.spim_base.Exaspim.schema: x_voxel_size, 0.748 micrometers
+2023-03-28,12:30:37.170 INFO spim_core.spim_base.Exaspim.schema: y_voxel_size, 0.748 micrometers
+2023-03-28,12:30:37.172 INFO spim_core.spim_base.Exaspim.schema: z_voxel_size, 1 micrometers
+2023-03-28,12:30:37.183 INFO spim_core.spim_base.Exaspim.schema: tile_x_position, 0.0 millimeters
+2023-03-28,12:30:37.183 INFO spim_core.spim_base.Exaspim.schema: tile_y_position, 0.0 millimeters
+2023-03-28,12:30:37.191 INFO spim_core.spim_base.Exaspim.schema: tile_z_position, 0.0 millimeters
+2023-03-28,12:30:37.193 INFO spim_core.spim_base.Exaspim.schema: lightsheet_angle, 0 degrees
+2023-03-28,12:30:37.193 INFO spim_core.spim_base.Exaspim.schema: laser_wavelength, 561 nanometers
+2023-03-28,12:30:37.201 INFO spim_core.spim_base.Exaspim.schema: laser_power, 2000 milliwatts
+2023-03-28,12:30:37.203 INFO spim_core.spim_base.Exaspim.schema: filter_wheel_index, 0
+2023-03-28,12:30:37.211 INFO spim_core.spim_base.Exaspim.schema: daq_etl amplitude: 0.1025
+2023-03-28,12:30:37.213 INFO spim_core.spim_base.Exaspim.schema: daq_etl offset: 2.528
+2023-03-28,12:30:37.213 INFO spim_core.spim_base.Exaspim.schema: daq_etl nonlinear: 0.0
+2023-03-28,12:30:37.223 INFO spim_core.spim_base.Exaspim.schema: daq_etl interp_time_s: 0.5
+2023-03-28,12:30:37.223 INFO spim_core.spim_base.Exaspim.schema: daq_etl buffer_time_s: 0.05
+2023-03-28,12:30:37.223 INFO spim_core.spim_base.Exaspim.schema: daq_galvo_a setpoint, 0
+2023-03-28,12:30:37.232 INFO spim_core.spim_base.Exaspim.schema: daq_galvo_b setpoint, 0

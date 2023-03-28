@@ -132,7 +132,7 @@ class Livestream(WidgetBase):
         self.instrument.stop_livestream()
         self.livestream_worker.quit()
         self.live_view['start'].setText('Start Live View')
-        if sample_pos_worker != None: self.sample_pos_worker.quit()
+        if self.sample_pos_worker != None: self.sample_pos_worker.quit()
 
         self.live_view['start'].clicked.connect(self.start_live_view)
 
@@ -156,7 +156,7 @@ class Livestream(WidgetBase):
             self.viewer.add_image(image, name = f"Video {layer_num}",
                                          multiscale=True,
                                          scale = self.scale)
-            self.viewer.layers[key].blending = 'additive'
+            self.viewer.layers[f"Video {layer_num}"].blending = 'additive'
 
     def sample_stage_position(self):
 
