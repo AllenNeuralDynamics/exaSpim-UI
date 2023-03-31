@@ -6,30 +6,35 @@ import qtpy.QtCore as QtCore
 
 class WidgetBase:
 
-    def config_change(self, widget, attribute, kw, specify = None):
+    def config_change(self, value, path, dict):
 
         """Changes instrument config when a changed value is entered
-        :param widget: the widget which input changed
-        :param attribute: the corresponding attribute that the widget represents
-        :param kw: the variable name in a nested dictionary
-        :param specify: the subdictionary key which the kw applies to. Used to map to multiple dictionaries with same kw
-        :param repeat = signals if there are multiple variables with the same kw in the dictionary
-        """
+        :param value: value from dial widget
+        :param path: path to value in cfg
+        :param dict: dictionary in cfg where value is saved"""
 
-        dictionary = getattr(self.cfg, attribute)
-        path = self.pathFind(dictionary, specify)
-        path = path + self.pathFind(dictionary, kw, path, True) if path is not None else self.pathFind(dictionary, kw)
-
-        cfg_value = self.pathGet(dictionary, path)
+        cfg_value = self.pathGet(dict, path)
         value_type = type(cfg_value)
-        value = value_type(widget.text())
-
+        value = float(value)
         if cfg_value != value:
-            self.pathSet(dictionary, path, value)
+            self.pathSet(dict, path, value)
             if self.instrument.livestream_enabled.is_set():
+                self.instrument._setup_waveform_hardware(self.instrument.active_lasers, live=True)
 
-                self.instrument.apply_config()
+    def update_layer(self, args):
 
+        """Update viewer with new multiscaled camera frame"""
+        (image, layer_num) = args
+
+        try:
+            layer = self.viewer.layers[f"Video {layer_num}"]
+            layer.data = image
+        except:
+            # Add image to a new layer if layer doesn't exist yet
+            self.viewer.add_image(image, name=f"Video {layer_num}",
+                                  multiscale=True,
+                                  scale=self.scale)
+            self.viewer.layers[f"Video {layer_num}"].blending = 'additive'
 
     def scan(self, dictionary: dict, attr: str, prev_key: str = None, QDictionary: dict = None,
              WindowDictionary: dict = None, wl: str = None, input_type: str = QLineEdit, subdict: bool = False):
@@ -170,16 +175,28 @@ class WidgetBase:
     def create_layout(self, struct: str, **kwargs):
 
         """Creates either a horizontal or vertical layout populated with widgets
-        :param struct: specifies whether the layout will be horizontal or vertical
+        :param struct: specifies whether the layout will be horizontal, vertical, or combo
         :param kwargs: all widgets contained in layout"""
 
+        layouts = {'H': QHBoxLayout(), 'V': QVBoxLayout()}
         widget = QFrame()
-        if struct == 'H':
-            layout = QHBoxLayout()
-        else:
-            layout = QVBoxLayout()
-        for arg in kwargs.values():
-            layout.addWidget(arg)
+        if struct == 'V' or struct == 'H':
+            layout = layouts[struct]
+            for arg in kwargs.values():
+                layout.addWidget(arg)
+
+        elif struct == 'VH' or 'HV':
+            bin0 = {}
+            bin1 = {}
+            j = 0
+            for v in kwargs.values():
+                bin0[str(v)] = v
+                j += 1
+                if j == 2:
+                    j = 0
+                    bin1[str(v)] = self.create_layout(struct=struct[0], **bin0)
+                    bin0 = {}
+            return self.create_layout(struct=struct[1], **bin1)
 
         layout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(layout)

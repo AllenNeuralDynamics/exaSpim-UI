@@ -7,7 +7,7 @@ from napari.qt.threading import thread_worker
 from time import sleep
 from pyqtgraph.Qt import QtCore, QtGui
 import qtpy.QtGui
-
+import stl
 
 class TissueMap(WidgetBase):
 
@@ -268,7 +268,7 @@ class TissueMap(WidgetBase):
         self.plot = gl.GLViewWidget()
         self.plot.opts['distance'] = 40
 
-        limits = self.remap_axis({'x': [0, 45], 'y': [0, 60], 'z': [0, 55]}) if self.instrument.simulated else \
+        limits = self.remap_axis({'x': [-27, 9], 'y': [-7, 7], 'z': [-3, 20]}) if self.instrument.simulated else \
             self.remap_axis(self.instrument.sample_pose.get_travel_limits(*['x', 'y', 'z']))
 
         low = {}
@@ -307,23 +307,23 @@ class TissueMap(WidgetBase):
         self.scan_vol.setSize(**scanning_volume)
         self.plot.addItem(self.scan_vol)
 
-        # axis
-        # x = gl.GLBoxItem()
-        # x.translate(self.origin['x'], self.origin['y'], -up['Z'])
-        # x.setSize(x=33,y=0,z=0)
-        # x.setColor(qtpy.QtGui.QColor('cornflowerblue'))
-        # self.plot.addItem(x)
-        # y = gl.GLBoxItem()
-        # y.translate(self.origin['x'], self.origin['y'], -up['Z'])
-        # y.setSize(x=0, y=33, z=0)
-        # y.setColor(qtpy.QtGui.QColor('red'))
-        # z = gl.GLBoxItem()
-        # self.plot.addItem(y)
-        # z.translate(self.origin['x'], self.origin['y'], -up['Z'])
-        # z.setSize(x=0, y=0, z=33)
-        # z.setColor(qtpy.QtGui.QColor('green'))
-        # self.plot.addItem(z)
+        objective_1 = stl.mesh.Mesh.from_file(r'C:\Users\micah.woodard\Downloads\exa-spim-tissue-map.stl')
+        points = objective_1.points.reshape(-1, 3)
+        faces = np.arange(points.shape[0]).reshape(-1, 3)
 
+        objective_1 = gl.MeshData(vertexes=points, faces=faces)
+        objective_1 = gl.GLMeshItem(meshdata=objective_1, smooth=True, drawFaces=True, drawEdges=False, color=(0.5, 0.5, 0.5, 0.5),
+                          shader='edgeHilight')
+        objective_1.scale(.01, .01, .01)
+        objective_1.setTransform(qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, 0.0,
+                                                    1.0,0.0, 0.0, 0.0,
+                                                    0.0, 1.0, 0.0, 0.0,
+                                                    0.0, 0.0, 0.0, 1.0))
+        objective_1.translate(0,0,0)
+        self.plot.addItem(objective_1)
+
+        camera = gl.GLScatterPlotItem(pos=(low['x'], self.origin['y'], self.origin['z']), size=1, color=(0.0, 1.0, 0.0, 0.5), pxMode=False)
+        self.plot.addItem(camera)
         # Representing stage position
         self.pos = gl.GLScatterPlotItem(pos=(1, 0, 0), size=1, color=(1.0, 0.0, 0.0, 0.5), pxMode=False)
         self.plot.addItem(self.pos)

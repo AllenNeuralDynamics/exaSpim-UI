@@ -26,7 +26,7 @@ if __name__ == '__main__':
                         choices=["INFO", "DEBUG"])
     parser.add_argument("--console_output", default=True,
                         help="whether or not to print to the console.")
-    parser.add_argument("--simulated", default=False, action="store_true",
+    parser.add_argument("--simulated", default=True, action="store_true",
                         help="Simulate hardware device connections.")
     # Note: colored console output is buggy on Windows.
     parser.add_argument("--color_console_output", type=bool,
