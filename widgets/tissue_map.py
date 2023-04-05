@@ -89,6 +89,7 @@ class TissueMap(WidgetBase):
                                                                                     self.cfg.volume_x_um,
                                                                                     self.cfg.volume_y_um,
                                                                                     self.cfg.volume_z_um)
+
         # State is 0 if checkmark is unpressed
         if state == 0:
             for item in self.plot.items:
@@ -120,33 +121,32 @@ class TissueMap(WidgetBase):
 
         while True:
 
-            try:
+            #try:
                 self.map_pose = self.instrument.sample_pose.get_position()
                 # Convert 1/10um to mm
-                coord = {k: v * 0.0001 for k, v in self.map_pose.items()}  # if not self.instrument.simulated \
-                #     else np.random.randint(-60000, 60000, 3)
+                coord = {k: v * 0.0001 for k, v in self.map_pose.items()}  #if not self.instrument.simulated \
+                     #else np.random.randint(-60000, 60000, 3)
 
                 gui_coord = self.remap_axis(coord)  # Remap sample_pos to gui coords
-                self.pos.setData(pos=[i for i in gui_coord.values()])  # Set position as list
+                self.mount.setTransform(
+                    qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, gui_coord['x'],  # Translate mount to correct coordinate
+                                          1.0, 0.0, 0.0, gui_coord['y'],
+                                          0.0, 1.0, 0.0, gui_coord['z'],
+                                          0.0, 0.0, 0.0, 1.0))
 
                 if self.instrument.start_pos == None:
-                    for item in self.plot.items:        # Remove previous scan vol and tiles
-                        if type(item) == gl.GLBoxItem:
+                    for item in self.plot.items:        # Remove previous tiles
+                        if type(item) == gl.GLBoxItem and item != self.scan_vol:
                             self.plot.removeItem(item)
 
-                    # Shift position of scan vol to center of camera fov and convert um to mm
-                    volume_pos = {'x': coord['x'] - (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
-                                  'y': coord['y'] - (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
-                                  'z': coord['z']}
                     # Translate volume of scan to gui coordinate plane
                     scanning_volume = self.remap_axis({k : self.cfg.imaging_specs[f'volume_{k}_um'] * .001
                                                        for k in self.map_pose.keys()})
 
-                    self.scan_vol = self.draw_volume(self.remap_axis(volume_pos), scanning_volume)  # Draw volume
-                    self.plot.addItem(self.scan_vol)    # Add volume to graph
+                    self.scan_vol.setSize(**scanning_volume)  # Draw volume
 
                     if self.map['tiling'].isChecked():
-                        self.draw_tiles(volume_pos) # Draw tiles if checkbox is checked
+                        self.draw_tiles() # Draw tiles if checkbox is checked
 
                 else:
 
@@ -159,14 +159,15 @@ class TissueMap(WidgetBase):
                         self.draw_tiles(start)
                     self.draw_volume(start, self.remap_axis({k : self.cfg.imaging_specs[f'volume_{k}_um'] * .001
                                                        for k in self.map_pose.keys()}))
-            except:
-                # In case Tigerbox throws an error
-                sleep(2)
-            finally:
                 sleep(.5)
-                yield   # Yeild so thread can stop
+            # except:
+            #     # In case Tigerbox throws an error
+            #     sleep(2)
+            # finally:
+            #     sleep(.5)
+            #     yield   # Yeild so thread can stop
 
-    def draw_tiles(self, coord):
+    def draw_tiles(self):
 
         """Draw tiles of proposed scan volume.
         :param coord: coordinates of bottom corner of volume in sample pose"""
@@ -182,9 +183,15 @@ class TissueMap(WidgetBase):
 
         for x in range(0, self.xtiles):
             for y in range(0, self.ytiles):
-                tile_pos = self.remap_axis({'x': round(x * self.x_grid_step_um * .001) + coord['x'],
-                                            'y': round(y * self.y_grid_step_um * .001) + coord['y'],
-                                            'z': coord['z']})
+
+                tile_offset = self.remap_axis({'x': x * self.x_grid_step_um * .001,
+                                                    'y': y * self.y_grid_step_um * .001,
+                                                    'z': 0})
+
+                tile_pos = {'x': tile_offset['x'] + self.low['x'] - (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
+                            'y': tile_offset['y'] + self.origin['y'] - (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
+                            'z': tile_offset['z'] + self.origin['z']
+                }
 
                 tile_volume = self.remap_axis({'x': self.cfg.tile_specs['x_field_of_view_um'] * .001,
                                                'y': self.cfg.tile_specs['y_field_of_view_um'] * .001,
@@ -232,7 +239,7 @@ class TissueMap(WidgetBase):
         axes = gl.GLGridItem()
         axes.rotate(*rotation)
         axes.setSize(*size)
-        axes.translate(*translate)  # Translate to lower end of x and origin of y and -z
+        axes.translate(*translate)  # Translate to self.lower end of x and origin of y and -z
         if color is not None: axes.setColor(qtpy.QtGui.QColor(color))
         self.plot.addItem(axes)
 
@@ -247,7 +254,7 @@ class TissueMap(WidgetBase):
     def remap_axis(self, coords: dict):
 
         """Remaps sample pose coordinates to gui 3d map coordinates.
-        Sample pose comes in dictionary with uppercase keys and gui uses lowercase"""
+        Sample pose comes in dictionary with uppercase keys and gui uses self.lowercase"""
 
         remap = {'x': 'z', 'y': 'x', 'z': '-y'}
         remap_coords = {}
@@ -271,14 +278,14 @@ class TissueMap(WidgetBase):
         limits = self.remap_axis({'x': [-27, 9], 'y': [-7, 7], 'z': [-3, 20]}) if self.instrument.simulated else \
             self.remap_axis(self.instrument.sample_pose.get_travel_limits(*['x', 'y', 'z']))
 
-        low = {}
+        self.low = {}
         up = {}
         axes_len = {}
         for dir in limits:
-            low[dir] = limits[dir][0] if limits[dir][0] < limits[dir][1] else limits[dir][1]
+            self.low[dir] = limits[dir][0] if limits[dir][0] < limits[dir][1] else limits[dir][1]
             up[dir] = limits[dir][1] if limits[dir][1] > limits[dir][0] else limits[dir][0]
-            axes_len[dir] = abs(round(up[dir] - low[dir]))
-            self.origin[dir] = round(low[dir] + (axes_len[dir] / 2))
+            axes_len[dir] = abs(round(up[dir] - self.low[dir]))
+            self.origin[dir] = round(self.low[dir] + (axes_len[dir] / 2))
 
         self.plot.opts['center'] = QtGui.QVector3D(self.origin['x'], self.origin['y'], self.origin['z'])
 
@@ -286,46 +293,55 @@ class TissueMap(WidgetBase):
         # Z coords increase as stage moves down so z origin and coords are negative
         self.create_axes((90, 0, 1, 0),
                          (axes_len['z'], axes_len['y']),
-                         (low['x'], self.origin['y'], self.origin['z']))
+                         (self.low['x'], self.origin['y'], self.origin['z']))
 
-        # y axes: Translate to lower end of y and origin of x and -z
+        # y axes: Translate to self.lower end of y and origin of x and -z
         self.create_axes((90, 1, 0, 0),
                          (axes_len['x'], axes_len['z']),
-                         (self.origin['x'], low['y'], self.origin['z']))
+                         (self.origin['x'], self.low['y'], self.origin['z']))
 
         # z axes: Translate to origin of x, y, z
         self.create_axes((0, 0, 0, 0),
                          (axes_len['x'], axes_len['y']),
-                         (self.origin['x'], self.origin['y'], low['z']))
+                         (self.origin['x'], self.origin['y'], self.low['z']))
 
         # Representing scan volume
         self.scan_vol = gl.GLBoxItem()
-        self.scan_vol.translate(self.origin['x'], self.origin['y'], up['z'])
+        self.scan_vol.translate(self.low['x']- (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
+                                self.origin['y']- (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
+                                self.origin['z'])
         scanning_volume = self.remap_axis({'x': self.cfg.imaging_specs[f'volume_x_um'] * 1 / 1000,
                                            'y': self.cfg.imaging_specs[f'volume_y_um'] * 1 / 1000,
                                            'z': self.cfg.imaging_specs[f'volume_z_um'] * 1 / 1000})
         self.scan_vol.setSize(**scanning_volume)
         self.plot.addItem(self.scan_vol)
 
-        objective_1 = stl.mesh.Mesh.from_file(r'C:\Users\micah.woodard\Downloads\exa-spim-tissue-map.stl')
-        points = objective_1.points.reshape(-1, 3)
+        setup = stl.mesh.Mesh.from_file(r'C:\Users\micah.woodard\Downloads\stl-test\stl-test\exa-spim-tissue-map.stl')
+        points = setup.points.reshape(-1, 3)
         faces = np.arange(points.shape[0]).reshape(-1, 3)
 
-        objective_1 = gl.MeshData(vertexes=points, faces=faces)
-        objective_1 = gl.GLMeshItem(meshdata=objective_1, smooth=True, drawFaces=True, drawEdges=False, color=(0.5, 0.5, 0.5, 0.5),
+        setup = gl.MeshData(vertexes=points, faces=faces)
+        setup = gl.GLMeshItem(meshdata=setup, smooth=True, drawFaces=True, drawEdges=False, color=(0.5, 0.5, 0.5, 0.5),
                           shader='edgeHilight')
-        objective_1.scale(.01, .01, .01)
-        objective_1.setTransform(qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, 0.0,
-                                                    1.0,0.0, 0.0, 0.0,
-                                                    0.0, 1.0, 0.0, 0.0,
-                                                    0.0, 0.0, 0.0, 1.0))
-        objective_1.translate(0,0,0)
-        self.plot.addItem(objective_1)
+        setup.setTransform(qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, self.low['x'],          # Transform axis from sample pose to gui
+                                                 1.0,0.0, 0.0, self.origin['y'],
+                                                 0.0, 1.0, 0.0, self.origin['z'],
+                                                 0.0, 0.0, 0.0, 1.0))
+        setup.scale(.5, .5, .5)
+        self.plot.addItem(setup)
 
-        camera = gl.GLScatterPlotItem(pos=(low['x'], self.origin['y'], self.origin['z']), size=1, color=(0.0, 1.0, 0.0, 0.5), pxMode=False)
-        self.plot.addItem(camera)
-        # Representing stage position
-        self.pos = gl.GLScatterPlotItem(pos=(1, 0, 0), size=1, color=(1.0, 0.0, 0.0, 0.5), pxMode=False)
-        self.plot.addItem(self.pos)
+        mount = stl.mesh.Mesh.from_file(r'C:\Users\micah.woodard\Downloads\stl-test\stl-test\exa-spim-holder.stl')
+        points =  mount.points.reshape(-1, 3)
+        faces = np.arange(points.shape[0]).reshape(-1, 3)
+
+        mount = gl.MeshData(vertexes=points, faces=faces)
+        self.mount = gl.GLMeshItem(meshdata= mount, smooth=True, drawFaces=True, drawEdges=False, color=(0.5, 0.5, 0.5, 0.5),
+                              shader='edgeHilight')
+        self.mount.setTransform(qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, 1.0,  # Transform axis from sample pose to gui
+                                                     1.0, 0.0, 0.0, 0.0,
+                                                     0.0, 1.0, 0.0, 0.0,
+                                                     0.0, 0.0, 0.0, 1.0))
+        self.mount.scale(.5, .5, .5)
+        self.plot.addItem(self.mount)
 
         return self.plot
