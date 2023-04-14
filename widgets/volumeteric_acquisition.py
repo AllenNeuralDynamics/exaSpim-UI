@@ -66,26 +66,9 @@ class VolumetericAcquisition(WidgetBase):
         self.instrument.run(overwrite=self.volumetric_image['overwrite'].isChecked())
         self.end_scan()
 
-    # def update_layer(self, args):
-    #
-    #     """Update viewer with the newest image from scan"""
-    #
-    #     (im, layer_num) = args
-    #
-    #     try:
-    #         layer = self.viewer.layers[f"Video {layer_num}"]
-    #         layer.data = image
-    #         sleep(1/16)
-    #     except:
-    #         # Add image to a new layer if layer doesn't exist yet
-    #         self.viewer.add_image(image, name=f"Video {layer_num}",
-    #                               multiscale=True,
-    #                               scale=self.scale)
-    #         self.viewer.layers[key].blending = 'additive'
-
     def end_scan(self):
 
-        #self.instrument.livestream_enabled.clear()
+
         self.run_worker.quit()
         #self.volumetric_image_worker.quit()
 

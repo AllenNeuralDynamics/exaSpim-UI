@@ -143,21 +143,6 @@ class Livestream(WidgetBase):
         button.setEnabled(False)
         QtCore.QTimer.singleShot(pause, lambda: button.setDisabled(False))
 
-    def update_layer(self, args):
-
-        """Update viewer with new multiscaled camera frame"""
-        (image, layer_num) = args
-
-        try:
-            layer = self.viewer.layers[f"Video {layer_num}"]
-            layer.data = image
-        except:
-            # Add image to a new layer if layer doesn't exist yet
-            self.viewer.add_image(image, name = f"Video {layer_num}",
-                                         multiscale=True,
-                                         scale = self.scale)
-            self.viewer.layers[f"Video {layer_num}"].blending = 'additive'
-
     def sample_stage_position(self):
 
         """Creates labels and boxs to indicate sample position"""
