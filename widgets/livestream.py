@@ -55,10 +55,14 @@ class Livestream(WidgetBase):
         directions = ['x', 'y', 'z']
         if index == 0 and not self.instrument.livestream_enabled.is_set():
 
-            self.stage_position = self.instrument.sample_pose.get_position()
-            # Update stage labels if stage has moved
-            for direction in directions:
-                self.pos_widget[direction].setValue(int(self.stage_position[direction] * 1 / 10))
+            try:        # TODO: This is hack for when tigerbox reply is split e.g. '3\r:A4 -76 0 \n'
+
+                self.stage_position = self.instrument.sample_pose.get_position()
+                # Update stage labels if stage has moved
+                for direction in directions:
+                    self.pos_widget[direction].setValue(int(self.stage_position[direction] * 1 / 10))
+            except:
+                pass
 
 
     def liveview_widget(self):

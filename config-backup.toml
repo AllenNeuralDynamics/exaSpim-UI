@@ -1,13 +1,13 @@
 [imaging_specs]
 local_storage_directory = "D:\\"
 external_storage_directory = "Y:\\"
-subject_id = "VP-151MX-2000"
+subject_id = "613814"
 tile_prefix = "tile"
 tile_overlap_x_percent = 10
 tile_overlap_y_percent = 15
 z_step_size_um = 1
-volume_x_um = 8000
-volume_y_um = 6000
+volume_x_um = 40000
+volume_y_um = 24000
 volume_z_um = 1024
 laser_wavelengths = [ 561,]
 

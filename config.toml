@@ -1,14 +1,14 @@
 [imaging_specs]
 local_storage_directory = "D:\\"
 external_storage_directory = "Y:\\"
-subject_id = "VP-151MX-80ms-2000mw"
+subject_id = "beads"
 tile_prefix = "tile"
 tile_overlap_x_percent = 10
 tile_overlap_y_percent = 15
 z_step_size_um = 1
-volume_x_um = 8000
-volume_y_um = 6000
-volume_z_um = 512
+volume_x_um = 6000
+volume_y_um = 4000
+volume_z_um = 64
 laser_wavelengths = [ 561,]
 
 [experiment_specs]
@@ -17,7 +17,7 @@ immersion_medium = "0.05X SSC"
 immersion_medium_refractive_index = 1.33
 
 [design_specs]
-slit_width_pixels = 3840.0
+slit_width_pixels = 240.0
 
 [waveform_specs]
 ttl_pulse_time_s = 0.01
@@ -120,8 +120,8 @@ port = "COMxx"
 delay_time_s = 0
 
 [channel_specs.561.etl]
-amplitude = 0.1025
-offset = 2.5075
+amplitude = 0
+offset = 2.518
 nonlinear = 0.0
 interp_time_s = 0.5
 buffer_time_s = 0.05
