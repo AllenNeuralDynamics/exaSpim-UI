@@ -63,7 +63,7 @@ class VolumetericAcquisition(WidgetBase):
 
     @thread_worker
     def _run(self):
-        self.instrument.run(overwrite=self.volumetric_image['overwrite'].isChecked())
+        self.instrument.run(overwrite=self.volumetric_image['overwrite'].isChecked(), spim_name='exaSPIM')
         self.end_scan()
 
     def end_scan(self):
