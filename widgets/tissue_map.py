@@ -128,7 +128,7 @@ class TissueMap(WidgetBase):
                      #else np.random.randint(-60000, 60000, 3)
 
                 gui_coord = self.remap_axis(coord)  # Remap sample_pos to gui coords
-                self.pos.setData(pos=[gui_coord['x'], gui_coord['y'], gui_coord['z']])
+                # self.pos.setData(pos=[gui_coord['x'], gui_coord['y'], gui_coord['z']])
 
                 self.mount.setTransform(
                     qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, self.origin['x'],  # Translate mount up and down
@@ -142,23 +142,24 @@ class TissueMap(WidgetBase):
                                           0.0, 1.0, 0.0, self.origin['z'],
                                           0.0, 0.0, 0.0, 1.0))
 
-                self.scan_vol.translate(gui_coord['x'] - (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
-                                        gui_coord['y'] - (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
-                                        gui_coord['z'])     # Move scan vol
-
-                # Translate volume of scan to gui coordinate plane
-                scanning_volume = self.remap_axis({k: self.cfg.imaging_specs[f'volume_{k}_um'] * .001
-                                                   for k in self.map_pose.keys()})
-
-                self.scan_vol.setSize(**scanning_volume)  # Draw volume
-
                 if self.instrument.start_pos == None:
-                    for item in self.plot.items:        # Remove previous tiles
-                        if type(item) == gl.GLBoxItem and item != self.scan_vol:
+                    for item in self.plot.items:  # Remove previous scan vol and tiles
+                        if type(item) == gl.GLBoxItem and item != self.scan_vol:  # and item != self.scan_vol:
                             self.plot.removeItem(item)
 
+                    # Translate volume of scan to gui coordinate plane
+                    scanning_volume = self.remap_axis({k: self.cfg.imaging_specs[f'volume_{k}_um'] * .001
+                                                       for k in self.map_pose.keys()})
+
+                    self.scan_vol.setSize(**scanning_volume)
+                    self.scan_vol.setTransform(qtpy.QtGui.QMatrix4x4(1, 0, 0, gui_coord['x'] - (
+                                .5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
+                                                                     0, 1, 0, gui_coord['y'] - (.5 * 0.001 * (
+                        self.cfg.tile_specs['y_field_of_view_um'])),
+                                                                     0, 0, 1, gui_coord['z'],
+                                                                     0, 0, 0, 1))
                     if self.map['tiling'].isChecked():
-                        self.draw_tiles(gui_coord) # Draw tiles if checkbox is checked
+                        self.draw_tiles(gui_coord)  # Draw tiles if checkbox is checked
 
                 else:
 
@@ -179,14 +180,14 @@ class TissueMap(WidgetBase):
                 sleep(.5)
                 yield   # Yeild so thread can stop
 
-    def draw_tiles(self, pos):
+    def draw_tiles(self, coord):
 
         """Draw tiles of proposed scan volume.
-        :param pos: coordinates of stage in gui coordinates"""
+        :param coord: coordinates of bottom corner of volume in sample pose"""
 
         # Check if volume in config has changed
         if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
-            self.set_tiling(2)      # Update grid steps and tile numbers
+            self.set_tiling(2)  # Update grid steps and tile numbers
             self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
 
         for item in self.plot.items:
@@ -195,21 +196,21 @@ class TissueMap(WidgetBase):
 
         for x in range(0, self.xtiles):
             for y in range(0, self.ytiles):
-
-                tile_offset = self.remap_axis({'x': x * self.x_grid_step_um * .001,
-                                               'y': y * self.y_grid_step_um * .001,
-                                               'z': 0})
-
-                tile_pos = {'x': tile_offset['x'] + pos['x'] - (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
-                            'y': tile_offset['y'] + pos['y'] - (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
-                            'z': tile_offset['z'] + pos['z']}
-
+                tile_offset = self.remap_axis({'x': (x * self.x_grid_step_um * .001),
+                                            'y': (y * self.y_grid_step_um * .001),
+                                            'z': 0})
+                tile_pos = {'x': tile_offset['x'] + coord['x'] - (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
+                            'y': tile_offset['y'] + coord['y'] - (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
+                            'z': tile_offset['z'] + coord['z']
+                }
                 tile_volume = self.remap_axis({'x': self.cfg.tile_specs['x_field_of_view_um'] * .001,
                                                'y': self.cfg.tile_specs['y_field_of_view_um'] * .001,
                                                'z': self.ztiles * self.cfg.z_step_size_um * .001})
                 tile = self.draw_volume(tile_pos, tile_volume)
                 tile.setColor(qtpy.QtGui.QColor('cornflowerblue'))
+                self.plot.removeItem(self.mount)        # Remove and add back mount to see tiling
                 self.plot.addItem(tile)
+                self.plot.addItem(self.mount)
 
     def draw_volume(self, coord: dict, size: dict):
 
@@ -316,7 +317,7 @@ class TissueMap(WidgetBase):
                          (self.origin['x'], self.origin['y'], self.low['z']))
 
         # Representing scan volume
-        self.scan_vol = gl.GLBoxItem()
+        self.scan_vol = gl.GLBoxItem(color = qtpy.QtGui.QColor('coral'))
         self.scan_vol.translate(self.low['x']- (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
                                 self.origin['y']- (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
                                 self.origin['z'])
@@ -327,8 +328,8 @@ class TissueMap(WidgetBase):
         self.plot.addItem(self.scan_vol)
 
         #Current position of stage
-        self.pos = gl.GLScatterPlotItem(pos=(1, 0, 0), size=1, color=(1, 0, 0, .5), pxMode=False)
-        self.plot.addItem(self.pos)
+        # self.pos = gl.GLScatterPlotItem(pos=(1, 0, 0), size=1, color=(1, 0, 0, .5), pxMode=False)
+        # self.plot.addItem(self.pos)
 
         setup = stl.mesh.Mesh.from_file(r'C:\Users\Administrator\Downloads\exa-spim-tissue-map.stl')
         points = setup.points.reshape(-1, 3)

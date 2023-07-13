@@ -81,8 +81,8 @@ class Lasers(WidgetBase):
         widget_wavelength = widget.text()
         widget.setHidden(True)
         self.tab_widget.setTabVisible(self.tab_map[widget_wavelength], False)
-        # self.laser_power[widget_wavelength].setHidden(True)
-        # self.laser_power[f'{widget_wavelength} label'].setHidden(True)
+        self.laser_power[widget_wavelength].setHidden(True)
+        self.laser_power[f'{widget_wavelength} label'].setHidden(True)
         self.imaging_wavelengths.remove(int(widget_wavelength))
         self.imaging_wavelengths.sort()
         self.wavelength_selection['unselected'].addItem(widget.text())
@@ -99,8 +99,8 @@ class Lasers(WidgetBase):
             self.wavelength_selection['unselected'].removeItem(index)
             self.selected[widget_wavelength].setHidden(False)
             self.tab_widget.setTabVisible(self.tab_map[widget_wavelength], True)
-            # self.laser_power[widget_wavelength].setHidden(False)
-            # self.laser_power[f'{widget_wavelength} label'].setHidden(False)
+            self.laser_power[widget_wavelength].setHidden(False)
+            self.laser_power[f'{widget_wavelength} label'].setHidden(False)
 
     def add_wavelength_tabs(self, tab_widget: QTabWidget):
 
@@ -161,14 +161,14 @@ class Lasers(WidgetBase):
 
         widget.setText(str(value/1000))
 
-    # def laser_power_slider(self):
+    def laser_power_slider(self):
     #
-    #     """Create slider for every possible laser and hides ones not in use
-    #     :param lasers: dictionary of lasers created """
+        """Create slider for every possible laser and hides ones not in use
+        :param lasers: dictionary of lasers created """
     #
-    #     laser_power_layout = {}
-    #     for wl in self.possible_wavelengths:  # Convert into strings for convenience. Laser device dict uses int , widget dict uses str
-    #         wls = str(wl)
+        laser_power_layout = {}
+        for wl in self.possible_wavelengths:  # Convert into strings for convenience. Laser device dict uses int , widget dict uses str
+            wls = str(wl)
     #
     #         # Setting commands and initial values for slider widgets. 561 is power based and others current
     #         if wl == 561:
@@ -179,37 +179,37 @@ class Lasers(WidgetBase):
     #             command = Cmd.LaserCurrent
     #             set_value = float(self.lasers[wl].get(Query.LaserCurrentSetting)) if not self.simulated else 15
     #
-    #         # Creating label and line edit widget
-    #         self.laser_power[f'{wls} label'], self.laser_power[wls] = self.create_widget(
-    #             value=None,
-    #             Qtype=QSlider,
-    #             label=f'{wl}: {set_value}mW' if wl == 561 else f'{wl}: {set_value}%')
+            # Creating label and line edit widget
+            set_value = 0
+            self.laser_power[f'{wls} label'], self.laser_power[wls] = self.create_widget(
+                value=None,
+                Qtype=QSlider,
+                label=f'{wl}: {set_value}mW')
     #
     #         # Setting coloring and bounds for sliders
-    #         self.laser_power[wls].setTickPosition(QSlider.TickPosition.TicksBothSides)
-    #         self.laser_power[wls].setStyleSheet(
-    #             f"QSlider::sub-page:horizontal{{ background-color:{self.cfg.channel_specs[wls]['color']}; }}")
-    #         self.laser_power[wls].setMinimum(0)
-    #         self.laser_power[wls].setMaximum(float(self.lasers[wl].get(Query.MaximumLaserPower))) \
-    #             if wl == 561 and not self.simulated else self.laser_power[wls].setMaximum(100)
-    #         self.laser_power[wls].setValue(set_value)
+            self.laser_power[wls].setTickPosition(QSlider.TickPosition.TicksBothSides)
+            self.laser_power[wls].setStyleSheet(
+                f"QSlider::sub-page:horizontal{{ background-color:{self.cfg.channel_specs[wls]['color']}; }}")
+            self.laser_power[wls].setMinimum(0)
+            self.laser_power[wls].setMaximum(150)
+            self.laser_power[wls].setValue(set_value)
     #
-    #         # Setting activity when slider is moved (update lable value)
-    #         # or released (update laser current or power to slider setpoint)
-    #         self.laser_power[wls].sliderReleased.connect(
-    #             lambda value=self.laser_power[wls].value(), wl=wls, released=True, command=command:
-    #             self.laser_power_label(command, wl, released, command))
-    #         self.laser_power[wls].sliderMoved.connect(
-    #             lambda value=self.laser_power[wls].value(), wl=wls: self.laser_power_label(value, wl))
+            # Setting activity when slider is moved (update lable value)
+            # or released (update laser current or power to slider setpoint)
+            # self.laser_power[wls].sliderReleased.connect(
+            #     lambda value=self.laser_power[wls].value(), wl=wls, released=True,:
+            #     self.laser_power_label(value, wl, released))
+            self.laser_power[wls].sliderMoved.connect(
+                lambda value=self.laser_power[wls].value(), wl=wls: self.laser_power_label(value, wl))
     #
-    #         # Hides sliders that are not being used in imaging
-    #         if wl not in self.imaging_wavelengths:
-    #             self.laser_power[wls].setHidden(True)
-    #             self.laser_power[f'{wls} label'].setHidden(True)
-    #         laser_power_layout[wls] = self.create_layout(struct='H', label=self.laser_power[f'{wls} label'],
-    #                                                      text=self.laser_power[wls])
+            # Hides sliders that are not being used in imaging
+            if wl not in self.imaging_wavelengths:
+                self.laser_power[wls].setHidden(True)
+                self.laser_power[f'{wls} label'].setHidden(True)
+            laser_power_layout[wls] = self.create_layout(struct='H', label=self.laser_power[f'{wls} label'],
+                                                         text=self.laser_power[wls])
     #
-    #     return self.create_layout(struct='V', **laser_power_layout)
+        return self.create_layout(struct='V', **laser_power_layout)
 
 
     def laser_power_label(self, value, wl: int, released=False, command=None):
@@ -222,13 +222,13 @@ class Lasers(WidgetBase):
         """
 
         value = self.laser_power[wl].value()
-        text = f'{wl}: {value}mW' if wl == str(561) else f'{wl}: {value}%'
+        text = f'{wl}: {value}mW'
         self.laser_power[f'{wl} label'].setText(text)
 
-        if released:
-            self.lasers[int(wl)].set(command, float(self.laser_power[wl].value()))
-            # TODO: When gui talks to hardware, log statement clarifying this
-            #   Anytime gui changes state of not the gui
+        # if released:
+        #     self.lasers[int(wl)].set(command, float(self.laser_power[wl].value()))
+        #     # TODO: When gui talks to hardware, log statement clarifying this
+        #     #   Anytime gui changes state of not the gui
             # self.lasers[561].get(Query.LaserPowerSetting)
 
     # def laser_power_splitter(self):

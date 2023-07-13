@@ -46,7 +46,7 @@ class UserInterface:
             # Set up laser window combining laser sliders and selection
             laser_window = QDockWidget()
             laser_widget = {
-                #'laser_slider': self.laser_slider,
+                'laser_slider': self.laser_slider,
                 'laser_select': self.laser_wl_select,
             }
             laser_window.setWidget(self.laser_parameters.create_layout(struct='H', **laser_widget))
@@ -140,7 +140,7 @@ class UserInterface:
         # }
         self.laser_wl_select = self.laser_parameters.laser_wl_select()
         #self.laser_slider = self.laser_parameters.create_layout(struct='H', **widgets)
-
+        self.laser_slider = self.laser_parameters.laser_power_slider()
 
     def close_instrument(self):
         self.instrument.cfg.save()

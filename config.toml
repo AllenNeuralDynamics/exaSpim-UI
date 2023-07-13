@@ -1,26 +1,26 @@
 [imaging_specs]
 local_storage_directory = "D:\\"
-external_storage_directory = "Y:\\"
-subject_id = "bkg_test"
+external_storage_directory = "D:\\local\\"
+subject_id = "coherent-test"
 tile_prefix = "tile"
-tile_overlap_x_percent = 10
+tile_overlap_x_percent = 15
 tile_overlap_y_percent = 15
 z_step_size_um = 1
-volume_x_um = 6000
-volume_y_um = 6000
-volume_z_um = 128
-laser_wavelengths = [488,561]
+volume_x_um = 5000
+volume_y_um = 5000
+volume_z_um = 1024
+laser_wavelengths = [ 488,]
 
 [experiment_specs]
 experimenters_name = "Adam Glaser"
 immersion_medium = "0.05X SSC"
 immersion_medium_refractive_index = 1.33
-x_anatomical_direction = "Anterior_to_posterior"
-y_anatomical_direction = "Inferior_to_superior"
-z_anatomical_direction = "Left_to_right"
+x_anatomical_direction = "None"
+y_anatomical_direction = "None"
+z_anatomical_direction = "None"
 
 [design_specs]
-slit_width_pixels = 480.0
+slit_width_pixels = 240.0
 
 [waveform_specs]
 ttl_pulse_time_s = 0.01
@@ -39,13 +39,13 @@ protocol_flags = "/j/i/y"
 egrabber_frame_buffer = 8
 unpacking_mode = "Msb"
 digital_gain_adu = 1
-line_interval_us = 20.44
+line_interval_us = 45.44
 
 [tile_specs]
-x_field_of_view_um = 6127.616
+x_field_of_view_um = 10615.616
 y_field_of_view_um = 7958.72
 row_count_pixels = 10640
-column_count_pixels = 8192
+column_count_pixels = 14192
 data_type = "uint16"
 
 [sample_stage_specs]
@@ -64,9 +64,9 @@ com_port = "COM3"
 etl = 0
 camera = 1
 stage = 2
-488 = 3
-638 = 4
-561 = 5
+488 = 4
+638 = 5
+561 = 3
 405 = 6
 galvo_a = 17
 galvo_b = 19
@@ -104,8 +104,8 @@ z = "x"
 delay_time_s = 0
 
 [channel_specs.488.etl]
-amplitude = 0.173
-offset = 2.342
+amplitude = 0.0
+offset = 2.444
 nonlinear = 0.0
 interp_time_s = 0.5
 buffer_time_s = 0.05
@@ -123,8 +123,8 @@ port = "COMxx"
 delay_time_s = 0
 
 [channel_specs.561.etl]
-amplitude = 0.173
-offset = 2.342
+amplitude = 0.119
+offset = 2.444
 nonlinear = 0.0
 interp_time_s = 0.5
 buffer_time_s = 0.05
@@ -162,7 +162,7 @@ delay_time_s = 0
 
 [channel_specs.638.etl]
 amplitude = 0.173
-offset = 2.342
+offset = 2.348
 nonlinear = 0.0
 interp_time_s = 0.5
 buffer_time_s = 0.05
