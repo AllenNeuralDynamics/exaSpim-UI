@@ -14,27 +14,37 @@ class WidgetBase:
         :param dict: dictionary in cfg where value is saved"""
 
         cfg_value = self.pathGet(dict, path)
-        value_type = type(cfg_value)
         value = float(value)
         if cfg_value != value:
             self.pathSet(dict, path, value)
             if self.instrument.livestream_enabled.is_set():
-                self.instrument._setup_waveform_hardware(self.instrument.active_lasers, live=True)
+                self.instrument._setup_waveform_hardware(self.instrument.active_lasers,
+                                                         live=self.instrument.livestream_enabled.is_set())
+                if self.instrument.scout_mode:
+                    self.start_stop_ni()
+
+    def start_stop_ni(self):
+        """Start and stop ni task """
+        self.instrument.ni.start()
+        self.instrument.ni.stop(sleep_time = self.cfg.get_channel_cycle_time(488))  # Pause to get at least one frame
 
     def update_layer(self, args):
 
         """Update viewer with new multiscaled camera frame"""
-        (image, layer_num) = args
-
         try:
+            (image, layer_num) = args
             layer = self.viewer.layers[f"Video {layer_num}"]
             layer.data = image
-        except:
+        except KeyError:
             # Add image to a new layer if layer doesn't exist yet
-            self.viewer.add_image(image, name=f"Video {layer_num}",
-                                  multiscale=True,
-                                  scale=self.scale)
-            self.viewer.layers[f"Video {layer_num}"].blending = 'additive'
+            if image != None:
+                self.viewer.add_image(image, name=f"Video {layer_num}",
+                                      multiscale=True,
+                                      scale = [self.cfg.tile_specs['x_field_of_view_um'] / self.cfg.sensor_column_count,
+                      self.cfg.tile_specs['y_field_of_view_um'] / self.cfg.sensor_row_count])
+                self.viewer.layers[f"Video {layer_num}"].blending = 'additive'
+        except:
+            pass
 
     def scan(self, dictionary: dict, attr: str, prev_key: str = None, QDictionary: dict = None,
              WindowDictionary: dict = None, wl: str = None, input_type: str = QLineEdit, subdict: bool = False):

@@ -1,5 +1,6 @@
 from widgets.widget_base import WidgetBase
-from qtpy.QtWidgets import QPushButton, QComboBox, QSpinBox, QLineEdit, QTabWidget, QListWidget, QListWidgetItem, QAbstractItemView, QMessageBox
+from qtpy.QtWidgets import QPushButton, QComboBox, QSpinBox, QLineEdit, QTabWidget, QListWidget, QListWidgetItem, QAbstractItemView, QMessageBox, QLabel,\
+    QSlider, QCheckBox
 import qtpy.QtGui as QtGui
 import qtpy.QtCore as QtCore
 import numpy as np
@@ -36,6 +37,7 @@ class Livestream(WidgetBase):
         self.pos_widget = {}
         self.pos_widget = {}  # Holds widgets related to sample position
         self.set_volume = {}  # Holds widgets related to setting volume limits during scan
+        self.move_stage = {}
         self.stage_position = None
         self.tab_widget = None
         self.sample_pos_worker = None
@@ -72,6 +74,11 @@ class Livestream(WidgetBase):
 
         self.live_view['start'] = QPushButton('Start Live View')
         self.live_view['start'].clicked.connect(self.start_live_view)
+
+        self.live_view['edges'] = QPushButton("View Middle Edges")
+        self.live_view['edges'].setCheckable(True)
+        self.live_view['edges'].released.connect(self.enable_middle_edges)
+
         wv_strs = [str(x) for x in self.possible_wavelengths]
         self.live_view['wavelength'] = QListWidget()
         self.live_view['wavelength'].setSelectionMode(QAbstractItemView.MultiSelection)
@@ -87,9 +94,10 @@ class Livestream(WidgetBase):
         #                                            "color: black;"
         #                                            "border: 2px solid green;}")
         self.live_view['wavelength'].setMaximumHeight(70)
-        self.live_view['wavelength'].setSortingEnabled(True)
 
-        return self.create_layout(struct='H', **self.live_view)
+        self.live_view['scouting'] = QCheckBox('Scout Mode')
+
+        return self.create_layout(struct='VH', **self.live_view)
 
 
     def start_live_view(self):
@@ -99,6 +107,8 @@ class Livestream(WidgetBase):
         self.disable_button(self.live_view['start'])
 
         wavelengths = [int(item.text()) for item in self.live_view['wavelength'].selectedItems()]
+        wavelengths.sort()
+        
         if wavelengths == []:
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Information)
@@ -111,9 +121,12 @@ class Livestream(WidgetBase):
         if self.live_view['start'].text() == 'Start Live View':
             self.live_view['start'].setText('Stop Live View')
 
-        self.instrument.start_livestream(wavelengths)
+        self.instrument.start_livestream(wavelengths, self.live_view['scouting'].isChecked())
         self.livestream_worker = create_worker(self.instrument._livestream_worker)
-        self.livestream_worker.yielded.connect(self.update_layer)
+        if self.live_view['edges'].isChecked():
+            self.livestream_worker.yielded.connect(self.dissect_image)
+        else:
+            self.livestream_worker.yielded.connect(self.update_layer)
         self.livestream_worker.start()
 
         sleep(2)    # Allow livestream to start
@@ -147,6 +160,60 @@ class Livestream(WidgetBase):
         button.setEnabled(False)
         QtCore.QTimer.singleShot(pause, lambda: button.setDisabled(False))
 
+    def enable_middle_edges(self):
+
+        """Function to just show 1024x1024 of top, bottom, left, right of image"""
+
+        if not self.instrument.livestream_enabled.is_set():
+            return
+        if self.live_view['edges'].isChecked():
+            self.livestream_worker.yielded.connect(self.dissect_image)
+            self.livestream_worker.yielded.disconnect(self.update_layer)
+        else:
+            self.livestream_worker.yielded.disconnect(self.dissect_image)
+            self.livestream_worker.yielded.connect(self.update_layer)
+
+
+    def dissect_image(self, args):
+
+        """Dissecting edges of image and displaying them in viewer"""
+
+        try:
+            (image, layer_num) = args
+
+            # Argument to change chunk size?
+
+            lower_col = round((self.cfg.column_count_px/2)-512)
+            upper_col = round((self.cfg.column_count_px/2)+512)
+            lower_row = round((self.cfg.row_count_px / 2) - 512)
+            upper_row = round((self.cfg.row_count_px / 2) + 512)
+
+            len = 1024*3
+            width = 1024*3
+
+            lower_col_container = round((width / 2) - 512)
+            upper_col_container = round((width / 2) + 512)
+            lower_row_container = round((len / 2) - 512)
+            upper_row_container = round((len / 2) + 512)
+
+            container = np.zeros((len, width))
+            container[:1024,lower_col_container:upper_col_container] = image[0][:1024, lower_col:upper_col] # Top
+            container[-1024:, lower_col_container:upper_col_container] = image[0][-1024:, lower_col:upper_col]    #bottom
+            container[lower_row_container:upper_row_container, :1024] = image[0][lower_row:upper_row, :1024] #left
+            container[lower_row_container:upper_row_container, -1024:] = image[0][lower_row:upper_row, -1024:]   #right
+
+            layer = self.viewer.layers[f"Video {layer_num} Edges"]
+            layer.data = container
+
+        except KeyError:
+            # Add image to a new layer if layer doesn't exist yet
+            self.viewer.add_image(container, name=f"Video {layer_num} Edges")
+
+        except TypeError:
+            pass
+
+
+
     def sample_stage_position(self):
 
         """Creates labels and boxs to indicate sample position"""
@@ -176,7 +243,7 @@ class Livestream(WidgetBase):
 
     def color_change_list(self, item):
 
-        """Changes selected iteams color in Qlistwidget"""
+        """Changes selected items color in Qlistwidget"""
 
         wl = item.text()
         if item.isSelected():
@@ -208,20 +275,26 @@ class Livestream(WidgetBase):
 
         self.log.info('Starting stage update')
         # While livestreaming and looking at the first tab the stage position updates
-        while True:
+        while self.instrument.livestream_enabled.is_set():
+            if self.tab_widget.currentIndex() != len(self.tab_widget) - 1:
+                moved = False
+                try:
+                    self.sample_pos = self.instrument.tigerbox.get_position()
+                    for direction in self.sample_pos.keys():
+                        if direction in self.pos_widget.keys():
+                            new_pos = int(self.sample_pos[direction] * 1 / 10)
+                            if self.pos_widget[direction].value() != new_pos:
+                                self.pos_widget[direction].setValue(new_pos)
+                                moved = True
 
-                while self.instrument.livestream_enabled.is_set() and self.tab_widget.currentIndex() == 0:
-
-                    try:
-                        self.sample_pos = self.instrument.sample_pose.get_position()
-                        for direction, value in self.sample_pos.items():
-                            if direction in self.pos_widget:
-                                self.pos_widget[direction].setValue(int(value*1/10))  #Units in microns
-                    except:
-                        pass
-
-                yield       # yield so thread can quit
-                sleep(1)
+                    if self.instrument.scout_mode and moved:
+                        self.start_stop_ni()
+                    self.update_slider(self.sample_pos)  # Update slide with newest z depth
+                except:
+                    # Deal with garbled replies from tigerbox
+                    pass
+            yield
+            sleep(.5)
 
 
     def screenshot_button(self):
@@ -242,3 +315,79 @@ class Livestream(WidgetBase):
             imsave('screenshot.png', screenshot)
         else:
             self.error_msg('Screenshot', 'No image to screenshot')
+
+    def move_stage_widget(self):
+
+        """Widget to move stage up and down w/o joystick control"""
+
+        z_position = self.instrument.tigerbox.get_position('z')
+        self.z_limit = self.instrument.sample_pose.get_travel_limits('y')
+        self.z_limit['y'] = [round(x*10000) for x in self.z_limit['y']]
+        self.z_range = self.z_limit["y"][1] + abs(self.z_limit["y"][0]) # Shift range up by lower limit so no negative numbers
+        self.move_stage['up'] = QLabel(
+            f'Upper Limit: {round(self.z_limit["y"][0])}')  # Upper limit will be the more negative limit
+        self.move_stage['slider'] = QSlider()
+        self.move_stage['slider'].setOrientation(QtCore.Qt.Vertical)
+        self.move_stage['slider'].setInvertedAppearance(True)
+        self.move_stage['slider'].setMinimum(self.z_limit["y"][0])
+        self.move_stage['slider'].setMaximum(self.z_limit["y"][1])
+        self.move_stage['slider'].setValue(int(z_position['Z']))
+        self.move_stage['slider'].setTracking(False)
+        self.move_stage['slider'].sliderReleased.connect(self.move_stage_vertical_released)
+        self.move_stage['low'] = QLabel(
+            f'Lower Limit: {round(self.z_limit["y"][1])}')  # Lower limit will be the more positive limit
+
+        self.move_stage['halt'] = QPushButton('HALT')
+        self.move_stage['halt'].clicked.connect(self.update_slider)
+        self.move_stage['halt'].clicked.connect(lambda pressed=True, button=self.move_stage['halt']:
+                                                self.disable_button(pressed,button))
+        self.move_stage['halt'].clicked.connect(self.instrument.tigerbox.halt)
+
+        self.move_stage['position'] = QLineEdit(str(z_position['Z']))
+        self.move_stage['position'].setValidator(QtGui.QIntValidator(self.z_limit["y"][0],self.z_limit["y"][1]))
+        self.move_stage['slider'].sliderMoved.connect(self.move_stage_textbox)
+        self.move_stage_textbox(int(z_position['Z']))
+        self.move_stage['position'].returnPressed.connect(self.move_stage_vertical_released)
+
+
+
+        return self.create_layout(struct='V', **self.move_stage)
+
+    def move_stage_vertical_released(self, location=None):
+
+        """Move stage to location and stall until stopped"""
+
+        if location==None:
+            location = int(self.move_stage['position'].text())
+            self.move_stage['slider'].setValue(location)
+            self.move_stage_textbox(location)
+        self.tab_widget.setTabEnabled(len(self.tab_widget)-1, False)
+        self.move_stage_worker = create_worker(lambda location = location: self.instrument.tigerbox.move_absolute(z=location))
+        self.move_stage_worker.start()
+        self.move_stage_worker.finished.connect(lambda:self.enable_stage_slider())
+
+    def enable_stage_slider(self):
+
+        """Enable stage slider after stage has finished moving"""
+        self.move_stage['slider'].setEnabled(True)
+        self.move_stage['position'].setEnabled(True)
+        self.tab_widget.setTabEnabled(len(self.tab_widget) - 1, True)
+
+
+    def move_stage_textbox(self, location):
+
+        position = self.move_stage['slider'].pos()
+        self.move_stage['position'].setText(str(location))
+        self.move_stage['position'].move(QtCore.QPoint(position.x() + 30,
+                                                      round(position.y() + (-5)+((location+ abs(self.z_limit["y"][0]))/
+                                                      self.z_range*(self.move_stage['slider'].height()-10)))))
+
+    def update_slider(self, location:dict):
+
+        """Update position of slider if stage halted"""
+
+        if type(location) == bool:      # if location is bool, then halt button was pressed
+            self.move_stage_worker.quit()
+            location = self.instrument.tigerbox.get_position('z')
+        self.move_stage_textbox(int(location['Z']))
+        self.move_stage['slider'].setValue(int(location['Z']))

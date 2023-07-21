@@ -20,22 +20,15 @@ class SpimLogFilter(logging.Filter):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config_path", type=str, default=None)
-    parser.add_argument("--log_level", type=str, default="DEBUG",
-                        choices=["INFO", "DEBUG"])
-    parser.add_argument("--console_output", default=True,
-                        help="whether or not to print to the console.")
-    parser.add_argument("--simulated", default=False, action="store_true",
-                        help="Simulate hardware device connections.")
-    # Note: colored console output is buggy on Windows.
-    parser.add_argument("--color_console_output", type=bool,
-                        default=True)
 
-    args = parser.parse_args()
-    # Check if we didn't supply a config file and populate a safe guess.
-    if not args.config_path:
-        args.config_path = str(Path('./config.toml').absolute())
+    simulated = False
+    log_level = "DEBUG"  # ["INFO", "DEBUG"]
+    color_console_output = True
+
+    if simulated:
+        config_path = rf'C:\Users\{os.getlogin()}\PycharmProjects\exaSpim-UI\config.toml'
+    else:
+        config_path = rf'C:\Users\{os.getlogin()}\Documents\Github\exaSpim-UI\config.toml'
 
     # Setup logging.
     # Create log handlers to dispatch:
@@ -46,23 +39,23 @@ if __name__ == '__main__':
     # logger level must be set to the lowest level of any handler.
     logger.setLevel(logging.DEBUG)
     fmt = '%(asctime)s.%(msecs)03d %(levelname)s %(name)s: %(message)s'
-    fmt = "[SIM] " + fmt if args.simulated else fmt
+    fmt = "[SIM] " + fmt if simulated else fmt
     datefmt = '%Y-%m-%d,%H:%M:%S'
     log_formatter = ColoredFormatter(fmt=fmt, datefmt=datefmt) \
-        if args.color_console_output \
+        if color_console_output \
         else logging.Formatter(fmt=fmt, datefmt=datefmt)
-    if args.console_output:
-        log_handler = logging.StreamHandler(sys.stdout)
-        log_handler.addFilter(SpimLogFilter())
-        log_handler.setLevel(args.log_level)
-        log_handler.setFormatter(log_formatter)
-        logger.addHandler(log_handler)
+
+    log_handler = logging.StreamHandler(sys.stdout)
+    log_handler.addFilter(SpimLogFilter())
+    log_handler.setLevel(log_level)
+    log_handler.setFormatter(log_formatter)
+    logger.addHandler(log_handler)
 
     # Windows-based console needs to accept colored logs if running with color.
-    if os.name == 'nt' and args.color_console_output:
+    if os.name == 'nt' and color_console_output:
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
-    run = UserInterface(config_filepath=args.config_path,
-                        console_output_level=args.log_level,
-                        simulated=args.simulated)
+    run = UserInterface(config_filepath=config_path,
+                        console_output_level=log_level,
+                        simulated=simulated)

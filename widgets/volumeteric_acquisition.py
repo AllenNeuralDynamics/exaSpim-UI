@@ -1,12 +1,15 @@
 from widgets.widget_base import WidgetBase
 from qtpy.QtWidgets import QPushButton, QCheckBox, QLabel, QComboBox, QSpinBox, QDockWidget, \
-    QSlider, QLineEdit,QMessageBox, QTabWidget
+    QSlider, QLineEdit,QMessageBox, QTabWidget, QProgressBar
 import numpy as np
 from pyqtgraph import PlotWidget, mkPen
 from exaspim.operations.waveform_generator import generate_waveforms
 import logging
 from napari.qt.threading import thread_worker, create_worker
 from time import sleep
+import qtpy.QtCore as QtCore
+from datetime import timedelta, datetime
+import calendar
 
 class VolumetericAcquisition(WidgetBase):
 
@@ -28,6 +31,7 @@ class VolumetericAcquisition(WidgetBase):
 
         self.waveform = {}
         self.selected = {}
+        self.progress = {}
         self.data_line = None       # Lines for graph
 
 
@@ -53,24 +57,77 @@ class VolumetericAcquisition(WidgetBase):
 
         for i in range(1,len(self.tab_widget)):
             self.tab_widget.setTabEnabled(i,False)
-
+        self.instrument.cfg.save()
         self.run_worker = self._run()
+        self.run_worker.finished.connect(lambda: self.end_scan())  # Napari threads have finished signals
         self.run_worker.start()
-        # sleep(5)
-        # self.livestream_worker = create_worker(self.instrument._livestream_worker)
-        # self.livestream_worker.yielded.connect(self.update_layer)
-        # self.livestream_worker.start()
+        sleep(5)
+        self.volumetric_image_worker = create_worker(self.instrument._livestream_worker)
+        self.volumetric_image_worker.yielded.connect(self.update_layer)
+        self.volumetric_image_worker.start()
+
+        sleep(5)
+        self.progress_worker = self._progress_bar_worker()
+        self.progress_worker.start()
 
     @thread_worker
     def _run(self):
         self.instrument.run(overwrite=self.volumetric_image['overwrite'].isChecked(), spim_name='exaSPIM')
-        self.end_scan()
+        yield
+
 
     def end_scan(self):
 
-
         self.run_worker.quit()
-        #self.volumetric_image_worker.quit()
+        self.volumetric_image_worker.quit()
+        self.viewer.layers.clear()      # Gui crashes if you zoom in on last uploaded image.
+        # Maybe also just upload the most downsampled image as solution?
+
+    def progress_bar_widget(self):
+
+        self.progress['bar'] = QProgressBar()
+        self.progress['bar'].setStyleSheet('QProgressBar::chunk {background-color: green;}')
+        self.progress['bar'].setHidden(True)
+
+        self.progress['end_time'] = QLabel()
+        self.progress['end_time'].setHidden(True)
+
+        return self.create_layout(struct='H', **self.progress)
+
+    @thread_worker
+    def _progress_bar_worker(self):
+        """Displays progress bar of the current scan"""
+
+        QtCore.QMetaObject.invokeMethod(self.progress['bar'], 'setHidden', QtCore.Q_ARG(bool, False))
+        QtCore.QMetaObject.invokeMethod(self.progress['end_time'], 'setHidden', QtCore.Q_ARG(bool, False))
+        QtCore.QMetaObject.invokeMethod(self.progress['bar'], 'setValue', QtCore.Q_ARG(int, 0))
+        while self.instrument.total_tiles == 0:
+            sleep(.5)       # Stall since the following meterics won't be calculated yet
+        total_tiles = self.instrument.total_tiles
+        z_tiles = total_tiles / self.instrument.x_y_tiles
+        time_scale = self.instrument.x_y_tiles/86400
+        est_run_time = ((((self.cfg.get_channel_cycle_time(488))) * z_tiles)    # Kinda hacky if cycle times are different
+                        *self.instrument.x_y_tiles)/86400    # Needs to be a base class thing
+
+        pct = 0
+        while self.instrument.acquiring_images:
+            pct = self.instrument.frame_index/total_tiles if self.instrument.frame_index != 0 else pct
+            QtCore.QMetaObject.invokeMethod(self.progress['bar'], f'setValue', QtCore.Q_ARG(int, round(pct*100)))
+            # Qt threads are so weird. Can't invoke repaint method outside of main thread and Qthreads don't play nice
+            # with napari threads so QMetaObject is static read-only instances
+
+            if self.instrument.curr_tile_index == 0:
+                completion_date = self.instrument.start_time + timedelta(days=est_run_time)
+
+            else:
+                total_time_days = self.instrument.tile_time_s*time_scale
+                completion_date = self.instrument.start_time + timedelta(days=total_time_days)
+
+            date_str = completion_date.strftime("%d %b, %Y at %H:%M %p")
+            weekday = calendar.day_name[completion_date.weekday()]
+            self.progress['end_time'].setText(f"End Time: {weekday}, {date_str}")
+            sleep(.5)
+            yield  # So thread can stop
 
     def overwrite_warning(self):
         msgBox = QMessageBox()
