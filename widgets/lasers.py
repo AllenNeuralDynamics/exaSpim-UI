@@ -85,6 +85,7 @@ class Lasers(WidgetBase):
         self.laser_power[f'{widget_wavelength} label'].setHidden(True)
         self.imaging_wavelengths.remove(int(widget_wavelength))
         self.imaging_wavelengths.sort()
+        self.cfg.channels = self.imaging_wavelengths
         self.wavelength_selection['unselected'].addItem(widget.text())
 
     def unhide_labels(self):
@@ -96,6 +97,7 @@ class Lasers(WidgetBase):
             widget_wavelength = self.wavelength_selection['unselected'].currentText()
             self.imaging_wavelengths.append(int(widget_wavelength))
             self.imaging_wavelengths.sort()
+            self.cfg.channels = self.imaging_wavelengths
             self.wavelength_selection['unselected'].removeItem(index)
             self.selected[widget_wavelength].setHidden(False)
             self.tab_widget.setTabVisible(self.tab_map[widget_wavelength], True)

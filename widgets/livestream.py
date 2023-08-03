@@ -31,6 +31,7 @@ class Livestream(WidgetBase):
         self.log = logging.getLogger(__name__ + "." + self.__class__.__name__)
 
         self.live_view = {}
+        self.live_view_checks = {}
         self.waveform = {}
         self.selected = {}
         self.grid = {}
@@ -90,20 +91,44 @@ class Livestream(WidgetBase):
             wv_item[wavelength].setBackground(QtGui.QColor(65, 72, 81, 255))
             self.live_view['wavelength'].addItem(wv_item[wavelength])
         self.live_view['wavelength'].itemPressed.connect(self.color_change_list)
-        # self.live_view['wavelength'].setStyleSheet(" QListWidget:item:selected:active {background: white;"
-        #                                            "color: black;"
-        #                                            "border: 2px solid green;}")
+
         self.live_view['wavelength'].setMaximumHeight(70)
 
-        self.live_view['scouting'] = QCheckBox('Scout Mode')
+        self.live_view_checks['scouting'] = QCheckBox('Scout Mode')
+        self.live_view_checks['crosshairs'] = QCheckBox('Crosshairs')
+        self.live_view_checks['crosshairs'].stateChanged.connect(self.show_crosshairs)
+
+        self.live_view['checkboxes'] = self.create_layout(struct='H', **self.live_view_checks)
 
         return self.create_layout(struct='VH', **self.live_view)
 
+    def show_crosshairs(self, state):
+
+        """Create or remove crosshair layer"""
+
+        # State is 2 if checkmark is pressed
+        if state == 2:
+
+            vert_line = np.array([[0, self.cfg.tile_size_x_um * .5], [self.cfg.tile_size_y_um, self.cfg.tile_size_x_um * .5]])
+            horz_line = np.array([[self.cfg.tile_size_y_um * .5, 0], [self.cfg.tile_size_y_um * .5, self.cfg.tile_size_x_um]])
+            l = [vert_line, horz_line]
+            color = ['blue', 'green']
+
+            shapes_layer = self.viewer.add_shapes(l, shape_type='line', edge_width=30, edge_color=color, name='Crosshair')
+            shapes_layer.mode = 'select'
+
+        # State is 0 if checkmark is unpressed
+        if state == 0:
+            try:
+                self.viewer.layers.remove('Crosshair')
+            except ValueError:
+                pass
 
     def start_live_view(self):
 
         """Start livestreaming"""
-
+        self.viewer.layers.clear()
+        self.live_view_checks['crosshairs'].setChecked(False)
         self.disable_button(self.live_view['start'])
 
         wavelengths = [int(item.text()) for item in self.live_view['wavelength'].selectedItems()]
@@ -121,8 +146,9 @@ class Livestream(WidgetBase):
         if self.live_view['start'].text() == 'Start Live View':
             self.live_view['start'].setText('Stop Live View')
 
-        self.instrument.start_livestream(wavelengths, self.live_view['scouting'].isChecked())
+        self.instrument.start_livestream(wavelengths, self.live_view_checks['scouting'].isChecked())
         self.livestream_worker = create_worker(self.instrument._livestream_worker)
+        self.livestream_worker.finished.connect(self.stop_livestream)
         if self.live_view['edges'].isChecked():
             self.livestream_worker.yielded.connect(self.dissect_image)
         else:
@@ -131,27 +157,33 @@ class Livestream(WidgetBase):
 
         sleep(2)    # Allow livestream to start
 
-        if not self.simulated:
-            self.sample_pos_worker = self._sample_pos_worker()
-            self.sample_pos_worker.start()
+
+        self.sample_pos_worker = self._sample_pos_worker()
+        self.sample_pos_worker.start()
+
 
 
         self.live_view['start'].clicked.connect(self.stop_live_view)
         # Only allow stopping once everything is initialized
         # to avoid crashing gui
 
+    def stop_livestream(self):
+
+        """Call stop livestream only after livestream thread has finished.
+        If camera is stopped before livestream thread, stalling can occur"""
+
+        self.instrument.stop_livestream()
+
     def stop_live_view(self):
 
         """Stop livestreaming"""
-
+        self.livestream_worker.quit()
+        self.sample_pos_worker.quit()
         self.disable_button(self.live_view['start'])
         self.live_view['start'].clicked.disconnect(self.stop_live_view)
-        self.instrument.stop_livestream()
-        self.livestream_worker.quit()
         self.live_view['start'].setText('Start Live View')
-        if self.sample_pos_worker != None: self.sample_pos_worker.quit()
-
         self.live_view['start'].clicked.connect(self.start_live_view)
+        self.live_view_checks['crosshairs'].setChecked(False)
 
     def disable_button(self, button, pause=3000):
 
@@ -166,6 +198,8 @@ class Livestream(WidgetBase):
 
         if not self.instrument.livestream_enabled.is_set():
             return
+        self.live_view_checks['crosshairs'].setChecked(False)
+        self.viewer.layers.clear()
         if self.live_view['edges'].isChecked():
             self.livestream_worker.yielded.connect(self.dissect_image)
             self.livestream_worker.yielded.disconnect(self.update_layer)
@@ -181,26 +215,21 @@ class Livestream(WidgetBase):
         try:
             (image, layer_num) = args
 
-            # Argument to change chunk size?
+            chunk = 1024
 
-            lower_col = round((self.cfg.column_count_px/2)-512)
-            upper_col = round((self.cfg.column_count_px/2)+512)
-            lower_row = round((self.cfg.row_count_px / 2) - 512)
-            upper_row = round((self.cfg.row_count_px / 2) + 512)
+            lower_col = round((self.cfg.column_count_px/2)-chunk)
+            upper_col = round((self.cfg.column_count_px/2)+chunk)
+            lower_row = round((self.cfg.row_count_px / 2) - chunk)
+            upper_row = round((self.cfg.row_count_px / 2) + chunk)
 
-            len = 1024*3
-            width = 1024*3
-
-            lower_col_container = round((width / 2) - 512)
-            upper_col_container = round((width / 2) + 512)
-            lower_row_container = round((len / 2) - 512)
-            upper_row_container = round((len / 2) + 512)
+            len = chunk*2
+            width = chunk*4
 
             container = np.zeros((len, width))
-            container[:1024,lower_col_container:upper_col_container] = image[0][:1024, lower_col:upper_col] # Top
-            container[-1024:, lower_col_container:upper_col_container] = image[0][-1024:, lower_col:upper_col]    #bottom
-            container[lower_row_container:upper_row_container, :1024] = image[0][lower_row:upper_row, :1024] #left
-            container[lower_row_container:upper_row_container, -1024:] = image[0][lower_row:upper_row, -1024:]   #right
+            container[:chunk, chunk:chunk+len] = image[0][:chunk, lower_col:upper_col] # Top
+            container[-chunk:, chunk:chunk+len] = image[0][-chunk:,lower_col:upper_col]  # bottom
+            container[:, :chunk] = image[0][lower_row:upper_row, :chunk]  # left
+            container[:, -chunk:] = image[0][lower_row:upper_row,-chunk:]  # right
 
             layer = self.viewer.layers[f"Video {layer_num} Edges"]
             layer.data = container
@@ -208,7 +237,6 @@ class Livestream(WidgetBase):
         except KeyError:
             # Add image to a new layer if layer doesn't exist yet
             self.viewer.add_image(container, name=f"Video {layer_num} Edges")
-
         except TypeError:
             pass
 
@@ -277,16 +305,16 @@ class Livestream(WidgetBase):
         # While livestreaming and looking at the first tab the stage position updates
         while self.instrument.livestream_enabled.is_set():
             if self.tab_widget.currentIndex() != len(self.tab_widget) - 1:
+
                 moved = False
                 try:
                     self.sample_pos = self.instrument.tigerbox.get_position()
                     for direction in self.sample_pos.keys():
-                        if direction in self.pos_widget.keys():
+                        if direction.lower() in self.pos_widget.keys():
                             new_pos = int(self.sample_pos[direction] * 1 / 10)
-                            if self.pos_widget[direction].value() != new_pos:
-                                self.pos_widget[direction].setValue(new_pos)
+                            if self.pos_widget[direction.lower()].value() != new_pos:
+                                self.pos_widget[direction.lower()].setValue(new_pos)
                                 moved = True
-
                     if self.instrument.scout_mode and moved:
                         self.start_stop_ni()
                     self.update_slider(self.sample_pos)  # Update slide with newest z depth
@@ -295,7 +323,6 @@ class Livestream(WidgetBase):
                     pass
             yield
             sleep(.5)
-
 
     def screenshot_button(self):
 

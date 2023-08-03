@@ -8,10 +8,10 @@ from time import sleep
 from pyqtgraph.Qt import QtCore, QtGui
 import qtpy.QtGui
 import stl
-from skimage import exposure
-import matplotlib
 import pyqtgraph as pg
 import tifffile
+import blend_modes
+
 
 class TissueMap(WidgetBase):
 
@@ -35,7 +35,7 @@ class TissueMap(WidgetBase):
         self.og_axis_remap = {v: k for k, v in self.sample_pose_remap.items()}
         self.tiles = []  # Tile in sample pose coords
         self.grid_step_um = {}  # Grid steps in samplepose coords
-
+        self.gl_overview = None
         self.tile_offset = self.remap_axis({'x': (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
                                             'y': (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
                                             'z': 0})
@@ -110,46 +110,50 @@ class TissueMap(WidgetBase):
         y_overlap_um = round((self.cfg.tile_overlap_y_percent / 100) * self.cfg.tile_specs['y_field_of_view_um'])
         self.scale_x = (
                 (((self.cfg.tile_specs['x_field_of_view_um'] * self.xtiles) - (x_overlap_um * (self.xtiles - 1))) * 0.001)
-                / self.overview_array[0].shape[0])
+                / self.overview_array[0].shape[1])
 
         self.scale_y = (
                 (((self.cfg.tile_specs['y_field_of_view_um'] * self.ytiles) - (y_overlap_um * (self.ytiles - 1))) * 0.001)
-                / self.overview_array[0].shape[1])
+                / self.overview_array[0].shape[0])
 
-        self.colormap_overviews = {}
-
-        for wl, image in zip(self.cfg.imaging_specs["laser_wavelengths"], self.overview_array):
-            wl_color = self.cfg.channel_specs[str(wl)]["color"]
-            rgb = qtpy.QtGui.QColor(wl_color).getRgb()
-            vals = np.ones((256, 4))
-            vals[:, 0] = np.linspace(rgb[0] / 256, 1, 256)
-            vals[:, 1] = np.linspace(rgb[1] / 256, 1, 256)
-            vals[:, 2] = np.linspace(rgb[2] / 256, 1, 256)
-            map = matplotlib.colors.ListedColormap(vals)
-
-            img_cdf, bin_centers = exposure.cumulative_distribution(image, nbins=int(image.max()))
-            image_interp = np.interp(image, bin_centers, img_cdf)
-            self.colormap_overviews[wl] = map(image_interp)
-
+        j = 0
+        colormap_array = [None] * len(self.cfg.channels)
+        for wl, image in zip(self.cfg.channels, self.overview_array):
             key = f'Overview {wl}'
-            self.viewer.add_image(np.rot90(image), name=key,
-                                  scale=[self.scale_y * 1000,
-                                         self.scale_x * 1000])  # scale so it won't be squished in viewer
+            self.viewer.add_image(image, name=key,
+                                  scale=[self.scale_x * 1000,
+                                         self.scale_y * 1000])  # scale so it won't be squished in viewer
+            self.viewer.layers[key].rotate = 90
             self.viewer.layers[key].blending = 'additive'
 
-        final_overview = sum(self.colormap_overviews.values())
-        overview_RGBA = \
-            pg.makeRGBA(np.flip(np.rot90(final_overview, 3), axis=1), levels=[0, 1])[0]  # GLImage needs to be RGBA
-        overview_RGBA[:, :, 3] = 200
-        self.gl_overview = gl.GLImageItem(overview_RGBA, glOptions='translucent')
-        gui_coord = self.remap_axis({k: v * 0.0001 for k, v in self.map_pose.items()})
-        self.gl_overview.setTransform(qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, gui_coord['x'] - self.tile_offset['x'],
-                                                            0.0, self.scale_x, 0.0,gui_coord['y'] - self.tile_offset['y'],
-                                                            -self.scale_y, 0.0, 0.0,gui_coord['z'] - self.tile_offset['z'],
-                                                            0.0, 0.0, 0.0, 1.0))
+            wl_color = self.cfg.laser_specs[str(wl)]["color"]
+            rgb = [x / 255 for x in qtpy.QtGui.QColor(wl_color).getRgb()]
 
-        self.plot.addItem(self.mount)
-        self.plot.addItem(self.setup)
+            max = np.percentile(image, 90)
+            min = np.percentile(image, 5)
+            image.clip(min, max, out=image)
+            image -= min
+            image = np.floor_divide(image, (max - min) / 256, out=image, casting='unsafe')
+            overview_RGBA = \
+                pg.makeRGBA(np.flip(image, axis=1), levels=[0, 256])[0]  # GLImage needs to be RGBA
+            for i in range(0, len(rgb)):
+                overview_RGBA[:, :, i] = overview_RGBA[:, :, i] * rgb[i]
+            colormap_array[j] = overview_RGBA
+            j += 1
+        blended = colormap_array[0]
+        for i in range(1, len(colormap_array)):
+            alpha = 1 - (i / (i + 1))
+            blended = blend_modes.darken_only(blended.astype('f8'), colormap_array[i].astype('f8'), alpha)
+
+        final_RGBA = pg.makeRGBA(blended, levels=[0, 256])[0]
+        self.gl_overview = gl.GLImageItem(final_RGBA, glOptions='translucent')
+        gui_coord = self.remap_axis({k: v * 0.0001 for k, v in self.instrument.sample_pose.get_position().items()})
+        self.gl_overview.setTransform(qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, gui_coord['x'] - self.tile_offset['x'],
+                                                            0.0, self.scale_y, 0.0,gui_coord['y'] - self.tile_offset['y'],
+                                                            self.scale_x, 0.0, 0.0,gui_coord['z'] - self.tile_offset['z'],
+                                                            0.0, 0.0, 0.0, 1.0))
+        self.plot.removeItem(self.mount)
+        self.plot.removeItem(self.setup)
         self.plot.addItem(self.gl_overview)  # GlImage doesn't like threads, do this outside of thread
         self.plot.addItem(self.mount)
         self.plot.addItem(self.setup)  # Remove and add objectives to see view through them
@@ -165,10 +169,21 @@ class TissueMap(WidgetBase):
 
         self.overview_array, self.xtiles, self.ytiles = self.instrument.overview_scan()
 
-        # self.overview_array = [tifffile.imread(fr'D:\overview_img_488_2023-07-19_13-03-41.tiff')]
+        # self.overview_array = [tifffile.imread(fr'D:\overview_img_561_2023-08-02_13-59-39.tiff')]
         # self.xtiles = 2
         # self.ytiles = 2
 
+        # Recalculate Limits based on new zero in place
+        limits = self.remap_axis({'x': [-27, 9], 'y': [-7, 7], 'z': [-3, 20]}) if self.instrument.simulated else \
+            self.remap_axis(self.instrument.sample_pose.get_travel_limits(*['x', 'y', 'z']))
+        self.low = {}
+        up = {}
+        axes_len = {}
+        for dir in limits:
+            self.low[dir] = limits[dir][0] if limits[dir][0] < limits[dir][1] else limits[dir][1]
+            up[dir] = limits[dir][1] if limits[dir][1] > limits[dir][0] else limits[dir][0]
+            axes_len[dir] = abs(round(up[dir] - self.low[dir]))
+            self.origin[dir] = round(self.low[dir] + (axes_len[dir] / 2))
 
     def mark_graph(self):
 
@@ -221,7 +236,7 @@ class TissueMap(WidgetBase):
         """Set current position as point on graph"""
 
         # Remap sample_pos to gui coords and convert 1/10um to mm
-        gui_coord = {k: v * 0.0001 for k, v in self.map_pose.items()}  # if not self.instrument.simulated \
+        gui_coord = self.remap_axis({k: v * 0.0001 for k, v in self.map_pose.items()})  # if not self.instrument.simulated \
                                     #     else np.random.randint(-60000, 60000, 3)
         gui_coord = [i for i in gui_coord.values()]  # Coords for point needs to be a list
         hue = str(self.map['color'].currentText())   # Color of point determined by drop down box
@@ -249,7 +264,7 @@ class TissueMap(WidgetBase):
 
                 gui_coord = self.remap_axis(coord)  # Remap sample_pos to gui coords
 
-                self.pos.setTransform(qtpy.QtGui.QMatrix4x4(1.0, 0.0, 0.0, gui_coord['x'] - self.tile_offset['x'],
+                self.pos.setTransform(qtpy.QtGui.QMatrix4x4(1.0, 0.0, 0.0, gui_coord['x']- self.tile_offset['x'],
                                                               0.0, 1.0, 0.0, gui_coord['y'] - self.tile_offset['y'],
                                                               0.0, 0.0, 1.0, gui_coord['z']- self.tile_offset['z'],
                                                               0.0, 0.0, 0.0, 1.0))
@@ -261,7 +276,7 @@ class TissueMap(WidgetBase):
                                           0.0, 0.0, 0.0, 1.0))
 
                 self.setup.setTransform(
-                    qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, gui_coord['x'],  # Translate system side to side
+                    qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, gui_coord['x'],  # Translate mount up and down and side to side
                                           1.0, 0.0, 0.0, gui_coord['y'],
                                           0.0, 1.0, 0.0, self.origin['z'],
                                           0.0, 0.0, 0.0, 1.0))
@@ -275,7 +290,7 @@ class TissueMap(WidgetBase):
                     self.scan_vol.setSize(**scanning_volume)
                     self.scan_vol.setTransform(qtpy.QtGui.QMatrix4x4(1, 0, 0, gui_coord['x'] - self.tile_offset['x'],
                                                                      0, 1, 0, gui_coord['y'] - self.tile_offset['y'],
-                                                                     0, 0, 1, gui_coord['z'] - self.tile_offset['z'],
+                                                                     0, 0, 1, gui_coord['z']- self.tile_offset['z'],
                                                                      0, 0, 0, 1))
                     if self.checkbox['tiling'].isChecked():
                         self.draw_tiles(gui_coord)  # Draw tiles if checkbox is checked
@@ -296,6 +311,7 @@ class TissueMap(WidgetBase):
             finally:
                 sleep(.5)
                 yield   # Yield so thread can stop
+
 
     def draw_tiles(self, coord):
 

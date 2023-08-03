@@ -79,6 +79,7 @@ class UserInterface:
 
             self.viewer.scale_bar.visible = True
             self.viewer.scale_bar.unit = "um"
+            napari.gui_qt()
             napari.run()
 
         finally:
@@ -88,6 +89,11 @@ class UserInterface:
 
     def instrument_params_widget(self):
         self.instrument_params = InstrumentParameters(self.simulated, self.instrument, self.cfg)
+
+        tabbed_widgets = QTabWidget()  # Creating tab object
+        tabbed_widgets.setTabPosition(QTabWidget.North)
+        tabbed_widgets.addTab(self.instrument_params.joystick_remap_tab(), 'Joystick')
+
         widgets = {
 
             'config_properties': self.instrument_params.scan_config(self.cfg),
@@ -96,8 +102,10 @@ class UserInterface:
         scroll_box = self.instrument_params.scroll_box(instrument_params_widget)
         instrument_params_dock = QDockWidget()
         instrument_params_dock.setWidget(scroll_box)
+        tabbed_widgets.addTab(instrument_params_dock, 'Parameters')
+        tabbed_widgets.setCurrentIndex(1)
 
-        return instrument_params_dock
+        return tabbed_widgets
 
     def livestream_widget(self):
 

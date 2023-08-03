@@ -1,19 +1,19 @@
 [imaging_specs]
 local_storage_directory = "D:\\"
-external_storage_directory = "D:\\local\\"
-subject_id = "gui-test"
+external_storage_directory = "Y:\\exaSPIM_debug"
+subject_id = "gui-test_08_02_23"
 tile_prefix = "tile"
 tile_overlap_x_percent = 15
 tile_overlap_y_percent = 15
 z_step_size_um = 1
-volume_x_um = 11000
-volume_y_um = 6000
-volume_z_um = 100
-laser_wavelengths = [ 488,]
+volume_x_um = 25000
+volume_y_um = 10000
+volume_z_um = 20000
+laser_wavelengths = [ 561,]
 
 [experiment_specs]
 experimenters_name = "Adam Glaser"
-immersion_medium = "0.05X SSC"
+immersion_medium = "1x PBS"
 immersion_medium_refractive_index = 1.33
 x_anatomical_direction = "None"
 y_anatomical_direction = "None"
@@ -52,7 +52,7 @@ data_type = "uint16"
 backlash_reset_distance_um = 4
 
 [daq_driver_kwds]
-dev_name = "Dev2"
+dev_name = "Dev3"
 samples_per_sec = 10000.0
 livestream_frequency_hz = 15
 
@@ -65,9 +65,9 @@ com_port = "COM3"
 etl = 0
 camera = 1
 stage = 2
-488 = 4
-638 = 5
-561 = 3
+488 = 5
+638 = 3
+561 = 4
 405 = 6
 galvo_a = 17
 galvo_b = 19
@@ -105,8 +105,8 @@ z = "x"
 delay_time_s = 0
 
 [channel_specs.488.etl]
-amplitude = 0.0
-offset = 2.444
+amplitude = 0.123
+offset = 2.438
 nonlinear = 0.0
 interp_time_s = 0.51
 buffer_time_s = 0.05
@@ -125,7 +125,7 @@ delay_time_s = 0
 
 [channel_specs.561.etl]
 amplitude = 0.119
-offset = 2.444
+offset = 2.438
 nonlinear = 0.0
 interp_time_s = 0.5
 buffer_time_s = 0.05

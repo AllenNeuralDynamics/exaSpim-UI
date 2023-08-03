@@ -1,8 +1,9 @@
 from widgets.widget_base import WidgetBase
 from qtpy.QtWidgets import QLineEdit, QVBoxLayout, QWidget, \
-    QHBoxLayout, QLabel, QDoubleSpinBox, QComboBox
+    QHBoxLayout, QLabel, QDoubleSpinBox, QComboBox, QComboBox, QDial, QToolButton
 from qtpy.QtGui import QIntValidator
-
+from tigerasi.device_codes import JoystickInput
+import qtpy.QtCore as QtCore
 
 def get_dict_attr(class_def, attr):
     # for obj in [obj] + obj.__class__.mro():
@@ -61,5 +62,101 @@ class InstrumentParameters(WidgetBase):
                                                                      label=self.imaging_specs[attr, '_label'],
                                                                      text=self.imaging_specs[attr])
         return self.create_layout(struct='V', **imaging_specs_widgets)
+
+    def joystick_remap_tab(self):
+
+        """Tab to remap joystick"""
+
+
+        tiger_axes = [k for k,v in self.instrument.tigerbox.get_joystick_axis_mapping().items() if v == JoystickInput.NONE]
+        tiger_axes.append('NONE')
+
+        joystick_mapping = self.instrument.tigerbox.get_joystick_axis_mapping()
+        self.joystick_axes = {'JOYSTICK_X':'', 'JOYSTICK_Y':'', 'Z_WHEEL':'', 'F_WHEEL':''}
+
+        self.axis_combobox = {}
+        combobox_layout = {}
+        for axis in self.joystick_axes.keys():
+            self.axis_combobox[axis] = QComboBox()
+            self.axis_combobox[axis].addItems(tiger_axes)
+            if JoystickInput[axis] in joystick_mapping.values():
+                current_text = list(joystick_mapping.keys())[list(joystick_mapping.values()).index(JoystickInput[axis])]
+                self.axis_combobox[axis].addItem(current_text)
+            else:
+                current_text = 'NONE'
+            self.joystick_axes[axis] = current_text
+            self.axis_combobox[axis].setCurrentText(current_text)
+            label = QLabel(f'{axis}:')
+            combobox_layout[axis] = self.create_layout(struct='H',
+                                                       label=label,
+                                                       combobox=self.axis_combobox[axis])
+            self.axis_combobox[axis].currentTextChanged.connect(lambda index = None,
+                                                                           axis = axis
+                                                                    : self.change_joystick_mapping(index, axis))
+
+        left = QToolButton()
+        left.setArrowType(QtCore.Qt.ArrowType.LeftArrow)
+        right = QToolButton()
+        right.setArrowType(QtCore.Qt.ArrowType.RightArrow)
+        right_left = self.create_layout(struct='H',
+                                        left=left,
+                                        right=right,
+                                        box=combobox_layout['JOYSTICK_X'])
+
+        up = QToolButton()
+        up.setArrowType(QtCore.Qt.ArrowType.UpArrow)
+        down = QToolButton()
+        down.setArrowType(QtCore.Qt.ArrowType.DownArrow)
+        up_down = self.create_layout(struct='H', up=up,
+                                     down=down,
+                                     box=combobox_layout['JOYSTICK_Y'])
+
+        left_dial = self.create_layout(struct='H', dial=QDial(),
+                                       box=combobox_layout['Z_WHEEL'])
+        right_dial = self.create_layout(struct='H', dial=QDial(),
+                                        box=combobox_layout['F_WHEEL'])
+
+        all = self.create_layout(struct='V', ud=up_down, rl=right_left, ldial=left_dial, rdial=right_dial)
+        all.children()[0].addStretch()
+        all.children()[0].addSpacing(0)
+        all.children()[0].setAlignment(QtCore.Qt.AlignLeft)
+        return all
+
+    def change_joystick_mapping(self, index, joystick_axis):
+
+        stage_ax = self.axis_combobox[joystick_axis].currentText()
+        if stage_ax == 'NONE':
+            # Unmap previous coordinate and add coordinate to all comboboxes
+            self.instrument.tigerbox.bind_axis_to_joystick_input(**{self.joystick_axes[joystick_axis]: JoystickInput.NONE})
+            for joystick, box in self.axis_combobox.items():
+                if joystick == joystick_axis:
+                    continue # don't add duplicate of axis
+                box.blockSignals(True)
+                box.addItem(self.joystick_axes[joystick_axis])
+                box.blockSignals(False)
+        elif self.joystick_axes[joystick_axis] == 'NONE':
+            # Map new stage axis to joystick
+            self.instrument.tigerbox.bind_axis_to_joystick_input(
+                **{stage_ax: JoystickInput[joystick_axis]})
+            for joystick, box in self.axis_combobox.items():
+                if joystick == joystick_axis:
+                    continue  # don't add duplicate of axis
+                box.blockSignals(True)
+                box.removeItem(box.findText(stage_ax))
+                box.blockSignals(False)
+        else:       # Neither stageax or joystick is none
+            #Set previous stage axis to map to none and set new axis to joystick axis
+            self.instrument.tigerbox.bind_axis_to_joystick_input(**{self.joystick_axes[joystick_axis]:JoystickInput.NONE,
+                                                                        stage_ax:JoystickInput[joystick_axis]})
+            for joystick, box in self.axis_combobox.items():
+                if joystick == joystick_axis:
+                    continue  # don't add duplicate of axis
+                box.blockSignals(True)
+                box.removeItem(box.findText(stage_ax))
+                box.addItem(self.joystick_axes[joystick_axis])
+                box.blockSignals(False)
+        # Update joystick axis
+        self.joystick_axes[joystick_axis] = stage_ax
+
 
 
