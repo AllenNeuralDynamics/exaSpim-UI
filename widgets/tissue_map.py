@@ -39,6 +39,8 @@ class TissueMap(WidgetBase):
         self.tile_offset = self.remap_axis({'x': (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
                                             'y': (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
                                             'z': 0})
+        self.gl_overview_pos = []
+        self.gl_overview = []
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -126,16 +128,16 @@ class TissueMap(WidgetBase):
             self.viewer.layers[key].rotate = 90
             self.viewer.layers[key].blending = 'additive'
 
-            wl_color = self.cfg.laser_specs[str(wl)]["color"]
+            wl_color = self.cfg.channel_specs[str(wl)]['color']
             rgb = [x / 255 for x in qtpy.QtGui.QColor(wl_color).getRgb()]
 
             max = np.percentile(image, 90)
             min = np.percentile(image, 5)
             image.clip(min, max, out=image)
             image -= min
-            image = np.floor_divide(image, (max - min) / 256, out=image, casting='unsafe')
+            image = np.floor_divide(np.flip(image), (max - min) / 256, out=image, casting='unsafe')
             overview_RGBA = \
-                pg.makeRGBA(np.flip(image, axis=1), levels=[0, 256])[0]  # GLImage needs to be RGBA
+                pg.makeRGBA(image, levels=[0, 256])[0]  # GLImage needs to be RGBA
             for i in range(0, len(rgb)):
                 overview_RGBA[:, :, i] = overview_RGBA[:, :, i] * rgb[i]
             colormap_array[j] = overview_RGBA
@@ -146,15 +148,14 @@ class TissueMap(WidgetBase):
             blended = blend_modes.darken_only(blended.astype('f8'), colormap_array[i].astype('f8'), alpha)
 
         final_RGBA = pg.makeRGBA(blended, levels=[0, 256])[0]
-        self.gl_overview = gl.GLImageItem(final_RGBA, glOptions='translucent')
+        self.gl_overview.append(gl.GLImageItem(final_RGBA, glOptions='translucent'))
         gui_coord = self.remap_axis({k: v * 0.0001 for k, v in self.instrument.sample_pose.get_position().items()})
-        self.gl_overview.setTransform(qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, gui_coord['x'] - self.tile_offset['x'],
-                                                            0.0, self.scale_y, 0.0,gui_coord['y'] - self.tile_offset['y'],
-                                                            self.scale_x, 0.0, 0.0,gui_coord['z'] - self.tile_offset['z'],
-                                                            0.0, 0.0, 0.0, 1.0))
+        self.gl_overview_pos.append({'x':gui_coord['x'] - self.tile_offset['x'],
+                                    'y': gui_coord['y'] - self.tile_offset['y'],
+                                    'z': gui_coord['z'] + self.tile_offset['z']})
         self.plot.removeItem(self.mount)
         self.plot.removeItem(self.setup)
-        self.plot.addItem(self.gl_overview)  # GlImage doesn't like threads, do this outside of thread
+        self.plot.addItem(self.gl_overview[-1])  # GlImage doesn't like threads, do this outside of thread
         self.plot.addItem(self.mount)
         self.plot.addItem(self.setup)  # Remove and add objectives to see view through them
 
@@ -169,8 +170,8 @@ class TissueMap(WidgetBase):
 
         self.overview_array, self.xtiles, self.ytiles = self.instrument.overview_scan()
 
-        # self.overview_array = [tifffile.imread(fr'D:\overview_img_561_2023-08-02_13-59-39.tiff')]
-        # self.xtiles = 2
+        # self.overview_array = [tifffile.imread(fr'D:\overview_img_561_2023-08-03_14-56-42.tiff')]
+        # self.xtiles = 3
         # self.ytiles = 2
 
         # Recalculate Limits based on new zero in place
@@ -264,9 +265,17 @@ class TissueMap(WidgetBase):
 
                 gui_coord = self.remap_axis(coord)  # Remap sample_pos to gui coords
 
+                if self.gl_overview != []:
+                    for im, pos in zip(self.gl_overview, self.gl_overview_pos):
+                        im.setTransform(
+                            qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, pos['x'],
+                                                  0.0, self.scale_y, 0.0, pos['y'],
+                                                  self.scale_x, 0.0, 0.0, gui_coord['z'] + self.tile_offset['z'],
+                                                  0.0, 0.0, 0.0, 1.0))
+
                 self.pos.setTransform(qtpy.QtGui.QMatrix4x4(1.0, 0.0, 0.0, gui_coord['x']- self.tile_offset['x'],
                                                               0.0, 1.0, 0.0, gui_coord['y'] - self.tile_offset['y'],
-                                                              0.0, 0.0, 1.0, gui_coord['z']- self.tile_offset['z'],
+                                                              0.0, 0.0, 1.0, self.origin['z'],
                                                               0.0, 0.0, 0.0, 1.0))
 
                 self.mount.setTransform(
@@ -290,7 +299,7 @@ class TissueMap(WidgetBase):
                     self.scan_vol.setSize(**scanning_volume)
                     self.scan_vol.setTransform(qtpy.QtGui.QMatrix4x4(1, 0, 0, gui_coord['x'] - self.tile_offset['x'],
                                                                      0, 1, 0, gui_coord['y'] - self.tile_offset['y'],
-                                                                     0, 0, 1, gui_coord['z']- self.tile_offset['z'],
+                                                                     0, 0, 1, self.origin['z'],
                                                                      0, 0, 0, 1))
                     if self.checkbox['tiling'].isChecked():
                         self.draw_tiles(gui_coord)  # Draw tiles if checkbox is checked
@@ -331,12 +340,12 @@ class TissueMap(WidgetBase):
         for x in range(0, self.xtiles):
             for y in range(0, self.ytiles):
                 tile_offset = self.remap_axis({'x': (x * self.x_grid_step_um * .001)- (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
-                                               'y': (y * self.y_grid_step_um * .001)- (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
+                                               'y': (y * self.y_grid_step_um * .001),   # No offset since z direction is placed based on origin
                                                'z': 0})
                 tile_pos = {
                     'x': tile_offset['x'] + coord['x'],
                     'y': tile_offset['y'] + coord['y'],
-                    'z': tile_offset['z'] + coord['z']
+                    'z': tile_offset['z'] + self.origin['z']
                     }
                 num_pos = [tile_pos['x'],
                            tile_pos['y'] + (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
