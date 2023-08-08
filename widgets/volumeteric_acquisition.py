@@ -206,34 +206,65 @@ class VolumetericAcquisition(WidgetBase):
         directions = ['x', 'y', 'z']
         self.min_max_widgets = {}
 
-        self.min_max_widgets['min_limit'] = QLabel('Minimum Limits')
-        self.min_max_widgets['max_limit'] = QLabel('Maximum Limits')
+        self.min_max_widgets['Min_limit'] = QLabel('Minimum Limits')
+        self.min_max_widgets['Max_limit'] = QLabel('Maximum Limits')
         for direction in directions:
-            self.limits[f'{direction}min'] = None
-            self.limits[f'{direction}max'] = None
+            self.limits[f'{direction}'] = [None,None]
 
-            self.min_max_widgets[direction] = QPushButton(f'{direction} min limit')
-            self.min_widgets[direction].clicked.connect(lambda direction=direction, extreme='min':self.set_limit(direction, extreme))
-            self.min_widgets[direction + 'label'] = QLabel(':')
+            self.min_max_widgets[direction+'min'] = QPushButton(f'{direction} min limit')
+            self.min_max_widgets[direction+'min'].clicked.connect(lambda direction=direction, extreme='min':self.set_limit(direction, extreme))
+            self.min_max_widgets[direction + 'minlabel'] = QLabel(':')
 
-            self.max_widgets[direction] = QPushButton(f'{direction} max limit')
-            self.max_widgets[direction + 'label'] = QLabel(':')
-            self.min_widgets[direction].clicked.connect(
+            self.min_max_widgets[direction+'max'] = QPushButton(f'{direction} max limit')
+            self.min_max_widgets[direction + 'maxlabel'] = QLabel(':')
+            self.min_max_widgets[direction+'max'].clicked.connect(
                 lambda direction=direction, extreme='max': self.set_limit(direction, extreme))
 
-        calculate = QPushButton('Calculate Position')
-        calculate.setDisabled(True)
+        self.min_max_widgets['calculate'] = QPushButton('Calculate Starting Position')
+        self.min_max_widgets['calculate'].setDisabled(True)
+        self.min_max_widgets['calculate label'] = QLabel()
 
+        min_widgets = self.create_layout(struct='H',**{k:v for k,v in self.min_max_widgets.items() if 'min' in k})
+        max_widgets = self.create_layout(struct='H',**{k:v for k,v in self.min_max_widgets.items() if 'max' in k})
+        calculate_widget = self.create_layout(struct='H', button=self.min_max_widgets['calculate'], label=self.min_max_widgets['calculate label'])
+        return self.create_layout(struct='V', min_label =self.min_max_widgets['Min_limit'], min_widgets=min_widgets,
+                                  max_label=self.min_max_widgets['Max_limit'], max_widgets=max_widgets,
+                                  calculate =calculate_widget)
     def set_limit(self, direction, extreme):
 
         """Set min and max limits for x, y, z"""
 
-        widget = self.min_widgets[direction + 'label'] if extreme == 'min' else self.max_widgets[direction + 'label']
         position = self.instrument.sample_pose.get_position(direction)
-        widget.setText(f': {position[direction]/10} um')
-        self.limits[f'{direction}{extreme}'] = position[direction]
+        self.min_max_widgets[direction+extreme].setText(f': {position[direction]/10} um')
+        if extreme == 'min':
+            self.limits[f'{direction}'][0] = position[direction]
+        else:
+            self.limits[f'{direction}'][1] = position[direction]
         if None not in self.limits.values():
-            calculate.setDisabled(True)
+            self.min_max_widgets['calculate'].setDisabled(False)
+
+    def calculate_scan_position(self):
+
+        """Calculate volume, tiles, and position of scan"""
+
+        size = {k:v[1]-v[0] for k,v in self.limits.items()}
+        x, y = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+                                                self.cfg.tile_overlap_y_percent,
+                                                self.cfg.z_step_size_um,
+                                                abs(size['x']),
+                                                abs(size['y']),
+                                                abs(size['z']))
+
+        centroid = {k:v/2 for k,v in size.items()}
+        x_grid_step_um, y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
+                                                                          self.cfg.tile_overlap_y_percent)
+
+        start_position = {'x': centroid['x']-((x/2)*(x_grid_step_um*10)),
+                          'y': centroid['y']-((y/2)*(y_grid_step_um*10)),
+                          'z': self.limits['z'][0]}
+        self.min_max_widgets['calculate label'].setText(str(start_position))
+
+
 
 
 

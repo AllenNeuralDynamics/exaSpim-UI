@@ -58,6 +58,7 @@ class UserInterface:
             tabbed_widgets.setTabPosition(QTabWidget.South)
             tabbed_widgets.addTab(main_window, 'Main Window')  # Adding main window tab
             tabbed_widgets = self.laser_parameters.add_wavelength_tabs(tabbed_widgets)  # Generate laser wl tabs
+            tabbed_widgets.addTab(self.vol_acq_params.limit_tab(), 'Limits')
             tabbed_widgets.addTab(self.tissue_map_window, 'Tissue Map')  # Adding tissue map tab
             self.tissue_map.set_tab_widget(tabbed_widgets)  # Passing in tab widget to tissue map
             self.livestream_parameters.set_tab_widget(tabbed_widgets)  # Passing in tab widget to livestream
