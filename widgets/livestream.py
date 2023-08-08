@@ -60,7 +60,7 @@ class Livestream(WidgetBase):
 
             try:        # TODO: This is hack for when tigerbox reply is split e.g. '3\r:A4 -76 0 \n'
 
-                self.stage_position = self.instrument.tigerbox.get_position()
+                self.stage_position = self.instrument.sample_pose.get_position()
                 # Update stage labels if stage has moved
                 for direction in directions:
                     self.pos_widget[direction].setValue(int(self.stage_position[direction] * 1 / 10))
@@ -127,8 +127,7 @@ class Livestream(WidgetBase):
     def start_live_view(self):
 
         """Start livestreaming"""
-        self.viewer.layers.clear()
-        self.live_view_checks['crosshairs'].setChecked(False)
+
         self.disable_button(self.live_view['start'])
 
         wavelengths = [int(item.text()) for item in self.live_view['wavelength'].selectedItems()]
@@ -308,12 +307,12 @@ class Livestream(WidgetBase):
 
                 moved = False
                 try:
-                    self.sample_pos = self.instrument.tigerbox.get_position()
+                    self.sample_pos = self.instrument.sample_pose.get_position()
                     for direction in self.sample_pos.keys():
-                        if direction.lower() in self.pos_widget.keys():
+                        if direction in self.pos_widget.keys():
                             new_pos = int(self.sample_pos[direction] * 1 / 10)
-                            if self.pos_widget[direction.lower()].value() != new_pos:
-                                self.pos_widget[direction.lower()].setValue(new_pos)
+                            if self.pos_widget[direction].value() != new_pos:
+                                self.pos_widget[direction].setValue(new_pos)
                                 moved = True
                     if self.instrument.scout_mode and moved:
                         self.start_stop_ni()
@@ -349,7 +348,7 @@ class Livestream(WidgetBase):
 
         z_position = self.instrument.tigerbox.get_position('z')
         self.z_limit = self.instrument.sample_pose.get_travel_limits('y')
-        self.z_limit['y'] = [round(x*10000) for x in self.z_limit['y']]
+        self.z_limit['y'] = [round(x*1000) for x in self.z_limit['y']]
         self.z_range = self.z_limit["y"][1] + abs(self.z_limit["y"][0]) # Shift range up by lower limit so no negative numbers
         self.move_stage['up'] = QLabel(
             f'Upper Limit: {round(self.z_limit["y"][0])}')  # Upper limit will be the more negative limit
@@ -411,10 +410,10 @@ class Livestream(WidgetBase):
 
     def update_slider(self, location:dict):
 
-        """Update position of slider if stage halted"""
+        """Update position of slider if stage halted. Location will be sample pose"""
 
         if type(location) == bool:      # if location is bool, then halt button was pressed
             self.move_stage_worker.quit()
             location = self.instrument.tigerbox.get_position('z')
-        self.move_stage_textbox(int(location['Z']))
-        self.move_stage['slider'].setValue(int(location['Z']))
+        self.move_stage_textbox(int(location['y']/10))
+        self.move_stage['slider'].setValue(int(location['y']/10))

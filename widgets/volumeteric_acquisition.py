@@ -33,7 +33,7 @@ class VolumetericAcquisition(WidgetBase):
         self.selected = {}
         self.progress = {}
         self.data_line = None       # Lines for graph
-
+        self.limits = {}
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -54,6 +54,9 @@ class VolumetericAcquisition(WidgetBase):
             return_value = self.overwrite_warning()
             if return_value == QMessageBox.Cancel:
                 return
+        return_value = self.scan_summary()
+        if return_value == QMessageBox.Cancel:
+            return
 
         for i in range(1,len(self.tab_widget)):
             self.tab_widget.setTabEnabled(i,False)
@@ -129,6 +132,31 @@ class VolumetericAcquisition(WidgetBase):
             sleep(.5)
             yield  # So thread can stop
 
+    def scan_summary(self):
+
+        x, y, z = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+                                                           self.cfg.tile_overlap_y_percent,
+                                                           self.cfg.z_step_size_um,
+                                                           self.cfg.volume_x_um,
+                                                           self.cfg.volume_y_um,
+                                                           self.cfg.volume_z_um)
+        est_run_time = ((((self.cfg.get_channel_cycle_time(488))) * z)  # Kinda hacky if cycle times are different
+                        * (x*y)) / 86400
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setText(f"Scan Summary\n"
+                       f"Lasers: {self.cfg.channels}\n"
+                       f"Time: {round(est_run_time, 3)} days\n"
+                       f"X Tiles: {x}\n"
+                       f"Y Tiles: {y}\n"
+                       f"Z Tiles: {z}\n"
+                       f"Local Dir: {self.cfg.local_storage_dir}\n"
+                       f"External Dir: {self.cfg.ext_storage_dir}\n"
+                       f"Press cancel to abort run")
+        msgBox.setWindowTitle("Scan Summary")
+        msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        return msgBox.exec()
+
     def overwrite_warning(self):
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Information)
@@ -171,7 +199,41 @@ class VolumetericAcquisition(WidgetBase):
         finally:
             self.viewer.window.add_dock_widget(self.waveform['graph'])
 
+    def limit_tab(self):
 
+        """Create tab to set limits on exaspim"""
+
+        directions = ['x', 'y', 'z']
+        self.min_max_widgets = {}
+
+        self.min_max_widgets['min_limit'] = QLabel('Minimum Limits')
+        self.min_max_widgets['max_limit'] = QLabel('Maximum Limits')
+        for direction in directions:
+            self.limits[f'{direction}min'] = None
+            self.limits[f'{direction}max'] = None
+
+            self.min_max_widgets[direction] = QPushButton(f'{direction} min limit')
+            self.min_widgets[direction].clicked.connect(lambda direction=direction, extreme='min':self.set_limit(direction, extreme))
+            self.min_widgets[direction + 'label'] = QLabel(':')
+
+            self.max_widgets[direction] = QPushButton(f'{direction} max limit')
+            self.max_widgets[direction + 'label'] = QLabel(':')
+            self.min_widgets[direction].clicked.connect(
+                lambda direction=direction, extreme='max': self.set_limit(direction, extreme))
+
+        calculate = QPushButton('Calculate Position')
+        calculate.setDisabled(True)
+
+    def set_limit(self, direction, extreme):
+
+        """Set min and max limits for x, y, z"""
+
+        widget = self.min_widgets[direction + 'label'] if extreme == 'min' else self.max_widgets[direction + 'label']
+        position = self.instrument.sample_pose.get_position(direction)
+        widget.setText(f': {position[direction]/10} um')
+        self.limits[f'{direction}{extreme}'] = position[direction]
+        if None not in self.limits.values():
+            calculate.setDisabled(True)
 
 
 

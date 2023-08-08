@@ -63,6 +63,8 @@ class InstrumentParameters(WidgetBase):
                                                                      text=self.imaging_specs[attr])
         return self.create_layout(struct='V', **imaging_specs_widgets)
 
+
+
     def joystick_remap_tab(self):
 
         """Tab to remap joystick"""

@@ -17,6 +17,9 @@ class TissueMap(WidgetBase):
 
     def __init__(self, instrument, viewer):
 
+        self.x_axis = None
+        self.y_axis = None
+        self.z_axis = None
         self.instrument = instrument
         self.viewer = viewer
         self.cfg = self.instrument.cfg
@@ -70,23 +73,32 @@ class TissueMap(WidgetBase):
         """Widgets for setting up a quick scan"""
 
         self.overview['start'] = QPushButton('Start overview')
-        self.overview['start'].clicked.connect(self.start_overview)
+        self.overview['start'].pressed.connect(self.start_overview)
 
         return self.create_layout(struct='V', **self.overview)
 
     def start_overview(self):
 
         """Start overview function of instrument"""
-
+        self.overview['start'].blockSignals(True)  # Block release signal so progress bar doesn't start
         if self.instrument.livestream_enabled.is_set():
             self.error_msg('Livestreaming',
                            'Please stop the livestream before starting overview.')
+            self.overview['start'].blockSignals(False)
             return
 
         if len(self.cfg.imaging_specs["laser_wavelengths"]) > 1:
             self.error_msg('One Channel',
                            'Please select only one channel for overview')
+            self.overview['start'].blockSignals(False)
             return
+
+        return_value = self.scan_summary()
+        if return_value == QMessageBox.Cancel:
+            self.overview['start'].blockSignals(False)
+            return
+        self.overview['start'].blockSignals(False)
+        self.overview['start'].released.emit()  # Start progress bar
 
         self.map_pos_worker.quit()  # Stopping tissue map update
         for i in range(0, len(self.tab_widget)): self.tab_widget.setTabEnabled(i, False)  # Disable tabs during scan
@@ -125,7 +137,6 @@ class TissueMap(WidgetBase):
             self.viewer.add_image(image, name=key,
                                   scale=[self.scale_x * 1000,
                                          self.scale_y * 1000])  # scale so it won't be squished in viewer
-            self.viewer.layers[key].rotate = 90
             self.viewer.layers[key].blending = 'additive'
 
             wl_color = self.cfg.channel_specs[str(wl)]['color']
@@ -152,11 +163,15 @@ class TissueMap(WidgetBase):
         gui_coord = self.remap_axis({k: v * 0.0001 for k, v in self.instrument.sample_pose.get_position().items()})
         self.gl_overview_pos.append({'x':gui_coord['x'] - self.tile_offset['x'],
                                     'y': gui_coord['y'] - self.tile_offset['y'],
-                                    'z': gui_coord['z'] + self.tile_offset['z']})
-        self.plot.removeItem(self.mount)
+                                    'z': gui_coord['z'] + (self.tile_offset['z']*(self.xtiles))})
+        self.gl_overview[-1].setTransform(
+                            qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, gui_coord['x'] - self.tile_offset['x'],
+                                                  0.0, self.scale_y, 0.0, gui_coord['y'] - self.tile_offset['y'],
+                                                  self.scale_x, 0.0, 0.0, gui_coord['z'] - (self.tile_offset['z']),
+                                                  0.0, 0.0, 0.0, 1.0))
+
         self.plot.removeItem(self.setup)
         self.plot.addItem(self.gl_overview[-1])  # GlImage doesn't like threads, do this outside of thread
-        self.plot.addItem(self.mount)
         self.plot.addItem(self.setup)  # Remove and add objectives to see view through them
 
         self.map_pos_worker = self._map_pos_worker()
@@ -165,14 +180,14 @@ class TissueMap(WidgetBase):
     @thread_worker
     def _overview_worker(self):
 
-        self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
-                                                                                    self.cfg.tile_overlap_y_percent)
+        # self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
+        #                                                                             self.cfg.tile_overlap_y_percent)
+        #
+        # self.overview_array, self.xtiles, self.ytiles = self.instrument.overview_scan()
 
-        self.overview_array, self.xtiles, self.ytiles = self.instrument.overview_scan()
-
-        # self.overview_array = [tifffile.imread(fr'D:\overview_img_561_2023-08-03_14-56-42.tiff')]
-        # self.xtiles = 3
-        # self.ytiles = 2
+        self.overview_array = [tifffile.imread(fr'D:\overview_img_488_2023-08-07_09-09-36.tiff')]
+        self.xtiles = 4
+        self.ytiles = 3
 
         # Recalculate Limits based on new zero in place
         limits = self.remap_axis({'x': [-27, 9], 'y': [-7, 7], 'z': [-3, 20]}) if self.instrument.simulated else \
@@ -186,13 +201,51 @@ class TissueMap(WidgetBase):
             axes_len[dir] = abs(round(up[dir] - low[dir]))
             self.origin[dir] = round(low[dir] + (axes_len[dir] / 2))
 
-            # Mount is stationary. This allows for overviews, points, and text so remain stationary
-            # and only the pos, volume, and setup move. Update when origin changes
-            self.mount.setTransform(
-                qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, self.origin['x'],
-                                      1.0, 0.0, 0.0, self.origin['y'],
-                                      0.0, 1.0, 0.0, self.origin['z'],
-                                      0.0, 0.0, 0.0, 1.0))
+        self.x_axis.setSize(*(axes_len['z'], axes_len['y']))
+        self.x_axis.translate(*(low['x'], self.origin['y'], self.origin['z']))  # Translate to lower end of x and origin of y and -z
+        self.x_axis.setTransform(
+                            qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, low['x'],
+                                                  0.0, 1, 0.0, self.origin['y'],
+                                                  1, 0.0, 0.0, self.origin['z'],
+                                                  0.0, 0.0, 1.0, 0.0))
+        #     = self.create_axes((90, 0, 1, 0),
+        #                                (axes_len['z'], axes_len['y']),
+        #                                (low['x'], self.origin['y'], self.origin['z']))
+        #
+        # # y axes: Translate to lower end of y and origin of x and -z
+        # self.y_axis = self.create_axes((90, 1, 0, 0),
+        #                                (axes_len['x'], axes_len['z']),
+        #                                (self.origin['x'], low['y'], self.origin['z']))
+        #
+        # # z axes: Translate to origin of x, y, z
+        # self.z_axis = self.create_axes((0, 0, 0, 0),
+        #                                (axes_len['x'], axes_len['y']),
+        #                                (self.origin['x'], self.origin['y'], low['z']))
+
+
+    def scan_summary(self):
+
+        x, y, z = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+                                                           self.cfg.tile_overlap_y_percent,
+                                                           8,
+                                                           self.cfg.volume_x_um,
+                                                           self.cfg.volume_y_um,
+                                                           self.cfg.volume_z_um)
+        est_run_time = ((((self.cfg.get_channel_cycle_time(488))) * z)  # Kinda hacky if cycle times are different
+                        * (x*y)) / 86400
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setText(f"Scan Summary\n"
+                       f"Lasers: {self.cfg.channels}\n"
+                       f"Time: {round(est_run_time, 3)} days\n"
+                       f"X Tiles: {x}\n"
+                       f"Y Tiles: {y}\n"
+                       f"Z Tiles: {z}\n"
+                       f"Saving as: {self.cfg.local_storage_dir}\overview_img_{'_'.join(map(str, self.cfg.channels))}\n"
+                       f"Press cancel to abort run")
+        msgBox.setWindowTitle("Scan Summary")
+        msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        return msgBox.exec()
 
     def mark_graph(self):
 
@@ -251,7 +304,7 @@ class TissueMap(WidgetBase):
         hue = str(self.map['color'].currentText())   # Color of point determined by drop down box
         point = gl.GLScatterPlotItem(pos=gui_coord, size=.35, color=qtpy.QtGui.QColor(hue), pxMode=False)
         info = self.map['label'].text() # Text comes from textbox
-        text = info if info != '' else ", ".join(map(str, round(gui_coord, 4)))
+        text = info if info != '' else ", ".join(map(str, [round(x,2) for x in gui_coord]))
         info_point = gl.GLTextItem(pos=gui_coord, text=text, font=qtpy.QtGui.QFont('Helvetica', 10))
         self.plot.addItem(info_point)               # Add items to plot
         self.plot.addItem(point)
@@ -288,7 +341,7 @@ class TissueMap(WidgetBase):
 
                     # Translate volume of scan to gui coordinate plane
                     scanning_volume = self.remap_axis({k: self.cfg.imaging_specs[f'volume_{k}_um'] * .001
-                                                       for k in self.map_pose.keys()}, {'x': 'z', 'y': 'x', 'z': 'y'})
+                                                       for k in self.map_pose.keys()})
                     # Scan vol appears upward to show what section of mount will be scanned as the mount moves downward
 
                     self.scan_vol.setSize(**scanning_volume)
@@ -309,7 +362,7 @@ class TissueMap(WidgetBase):
                     if self.map['tiling'].isChecked():
                         self.draw_tiles(start)
                     self.draw_volume(start, self.remap_axis({k : self.cfg.imaging_specs[f'volume_{k}_um'] * .001
-                                                       for k in self.map_pose.keys()}, {'x': 'z', 'y': 'x', 'z': 'y'}))
+                                                       for k in self.map_pose.keys()}))
             except:
                 pass
             finally:
@@ -344,19 +397,16 @@ class TissueMap(WidgetBase):
                     }
                 num_pos = [tile_pos['x'],
                            tile_pos['y'] + (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
-                           tile_pos['z'] - (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um']))]
+                           tile_pos['z'] + (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um']))]
 
                 tile_volume = self.remap_axis({'x': self.cfg.tile_specs['x_field_of_view_um'] * .001,
                                                'y': self.cfg.tile_specs['y_field_of_view_um'] * .001,
-                                               'z': self.ztiles * self.cfg.z_step_size_um * .001},
-                                              {'x': 'z', 'y': 'x', 'z': 'y'})
+                                               'z': self.ztiles * self.cfg.z_step_size_um * .001})
                 self.tiles.append(self.draw_volume(tile_pos, tile_volume))
                 self.tiles[-1].setColor(qtpy.QtGui.QColor('cornflowerblue'))
-                self.plot.removeItem(self.mount)
                 self.plot.addItem(self.tiles[-1])
-                self.plot.addItem(self.mount)  # remove and add objectives to see tiles through objective
                 self.tiles.append(
-                    gl.GLTextItem(pos=num_pos, text=str((self.xtiles * y) + x), font=qtpy.QtGui.QFont('Helvetica', 15)))
+                    gl.GLTextItem(pos=num_pos, text=str(((self.ytiles-1)-y)+(self.ytiles*x)), font=qtpy.QtGui.QFont('Helvetica', 15)))
                 self.plot.addItem(self.tiles[-1])  # Can't draw text while moving graph
 
     def draw_volume(self, coord: dict, size: dict):
@@ -401,6 +451,7 @@ class TissueMap(WidgetBase):
         axes.translate(*translate)  # Translate to lower end of x and origin of y and -z
         if color is not None: axes.setColor(qtpy.QtGui.QColor(color))
         self.plot.addItem(axes)
+        return axes
 
     def rotate_graph(self, click, center, elevation, azimuth):
 
@@ -415,7 +466,7 @@ class TissueMap(WidgetBase):
         """Remaps sample pose coordinates to gui 3d map coordinates.
         Sample pose comes in dictionary with uppercase keys and gui uses lowercase"""
 
-        remap = {'x': 'z', 'y': 'x', 'z': '-y'} if remap == {} else remap
+        remap = {'x': 'z', 'y': 'x', 'z': 'y'} if remap == {} else remap
         remap_coords = {}
 
         for k, v in remap.items():
@@ -446,22 +497,21 @@ class TissueMap(WidgetBase):
             up[dir] = limits[dir][1] if limits[dir][1] > limits[dir][0] else limits[dir][0]
             axes_len[dir] = abs(round(up[dir] - low[dir]))
             self.origin[dir] = round(low[dir] + (axes_len[dir] / 2))
-
         self.plot.opts['center'] = QtGui.QVector3D(self.origin['x'], self.origin['y'], self.origin['z'])
 
         # x axes: Translate axis so origin of graph translate to center of stage limits
         # Z coords increase as stage moves down so z origin and coords are negative
-        self.create_axes((90, 0, 1, 0),
+        self.x_axis = self.create_axes((90, 0, 1, 0),
                          (axes_len['z'], axes_len['y']),
                          (low['x'], self.origin['y'], self.origin['z']))
 
         # y axes: Translate to lower end of y and origin of x and -z
-        self.create_axes((90, 1, 0, 0),
+        self.y_axis = self.create_axes((90, 1, 0, 0),
                          (axes_len['x'], axes_len['z']),
                          (self.origin['x'], low['y'], self.origin['z']))
 
         # z axes: Translate to origin of x, y, z
-        self.create_axes((0, 0, 0, 0),
+        self.z_axis = self.create_axes((0, 0, 0, 0),
                          (axes_len['x'], axes_len['y']),
                          (self.origin['x'], self.origin['y'], low['z']))
 
@@ -486,8 +536,8 @@ class TissueMap(WidgetBase):
 
         # Current position of stage
         self.stage_pos = gl.GLScatterPlotItem()
-        self.stage_pos.setColor(qtpy.QtGui.QColor('red'))
-
+        self.stage_pos.setData(color=qtpy.QtGui.QColor('red'))
+        self.plot.addItem(self.stage_pos)
 
         try:
             setup = stl.mesh.Mesh.from_file(r'C:\Users\Administrator\Downloads\exa-spim-tissue-map.stl')
@@ -497,27 +547,10 @@ class TissueMap(WidgetBase):
             setup = gl.MeshData(vertexes=points, faces=faces)
             self.setup = gl.GLMeshItem(meshdata=setup, smooth=True, drawFaces=True, drawEdges=False, color=(0.5, 0.5, 0.5, 0.5),
                               shader='edgeHilight', glOptions = 'translucent')
-
-            mount = stl.mesh.Mesh.from_file(r'C:\Users\Administrator\Downloads\exa-spim-holder.stl')
-            points =  mount.points.reshape(-1, 3)
-            faces = np.arange(points.shape[0]).reshape(-1, 3)
-
-            mount = gl.MeshData(vertexes=points, faces=faces)
-            self.mount = gl.GLMeshItem(meshdata= mount, smooth=True, drawFaces=True, drawEdges=False, color=(0.5, 0.5, 0.5, 0.5),
-                                  shader='edgeHilight', glOptions = 'translucent')
-            # Mount is stationary. This allows for overviews, points, and text so remain stationary
-            # and only the pos, volume, and setup move
-            self.mount.setTransform(
-                qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, self.origin['x'],
-                                      1.0, 0.0, 0.0, self.origin['y'],
-                                      0.0, 1.0, 0.0, self.origin['z'],
-                                      0.0, 0.0, 0.0, 1.0))
-            self.plot.addItem(self.mount)
             self.plot.addItem(self.setup)
 
         except FileNotFoundError:
             # Create self.objectives and self.stage objects but don't add them to graph
             self.setup = gl.GLBoxItem()
-            self.mount = gl.GLBoxItem()
 
         return self.plot

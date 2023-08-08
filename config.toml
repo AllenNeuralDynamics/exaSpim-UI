@@ -1,19 +1,19 @@
 [imaging_specs]
 local_storage_directory = "D:\\"
 external_storage_directory = "Y:\\exaSPIM_debug"
-subject_id = "gui-test_08_02_23"
+subject_id = "tiling-test"
 tile_prefix = "tile"
 tile_overlap_x_percent = 15
 tile_overlap_y_percent = 15
 z_step_size_um = 1
-volume_x_um = 25000
-volume_y_um = 10000
-volume_z_um = 20000
-laser_wavelengths = [ 561,]
+volume_x_um = 40000
+volume_y_um = 20000
+volume_z_um = 2048
+laser_wavelengths = [ 488,]
 
 [experiment_specs]
 experimenters_name = "Adam Glaser"
-immersion_medium = "1x PBS"
+immersion_medium = "0.05X SSC"
 immersion_medium_refractive_index = 1.33
 x_anatomical_direction = "None"
 y_anatomical_direction = "None"
