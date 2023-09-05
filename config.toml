@@ -1,26 +1,28 @@
 [imaging_specs]
 local_storage_directory = "D:\\"
-external_storage_directory = "Y:\\exaSPIM_debug"
-subject_id = "tiling-test"
+external_storage_directory = "Z:\\stage\\exaSPIM"
+subject_id = "648434"
 tile_prefix = "tile"
 tile_overlap_x_percent = 15
 tile_overlap_y_percent = 15
 z_step_size_um = 1
 volume_x_um = 40000
 volume_y_um = 20000
-volume_z_um = 2048
-laser_wavelengths = [ 488,]
+volume_z_um = 28672
+laser_wavelengths = [ 561,]
+start_tile_index = 0
+end_tile_index = 14
 
 [experiment_specs]
-experimenters_name = "Adam Glaser"
+experimenters_name = "Xiaoyun Jiang"
 immersion_medium = "0.05X SSC"
 immersion_medium_refractive_index = 1.33
-x_anatomical_direction = "None"
-y_anatomical_direction = "None"
-z_anatomical_direction = "None"
+x_anatomical_direction = "Posterior_to_anterior"
+y_anatomical_direction = "Inferior_to_superior"
+z_anatomical_direction = "Right_to_left"
 
 [design_specs]
-slit_width_pixels = 240.0
+slit_width_pixels = 480.0
 
 [waveform_specs]
 ttl_pulse_time_s = 0.01
@@ -106,7 +108,7 @@ delay_time_s = 0
 
 [channel_specs.488.etl]
 amplitude = 0.123
-offset = 2.438
+offset = 2.437
 nonlinear = 0.0
 interp_time_s = 0.51
 buffer_time_s = 0.05
@@ -124,8 +126,8 @@ port = "COMxx"
 delay_time_s = 0
 
 [channel_specs.561.etl]
-amplitude = 0.119
-offset = 2.438
+amplitude = 0.121
+offset = 2.431
 nonlinear = 0.0
 interp_time_s = 0.5
 buffer_time_s = 0.05

@@ -94,7 +94,7 @@ class UserInterface:
         tabbed_widgets = QTabWidget()  # Creating tab object
         tabbed_widgets.setTabPosition(QTabWidget.North)
         tabbed_widgets.addTab(self.instrument_params.joystick_remap_tab(), 'Joystick')
-
+        tabbed_widgets.addTab(self.instrument_params.brain_orientation_widget(), 'Brain Orientation')
         widgets = {
 
             'config_properties': self.instrument_params.scan_config(self.cfg),
@@ -104,7 +104,7 @@ class UserInterface:
         instrument_params_dock = QDockWidget()
         instrument_params_dock.setWidget(scroll_box)
         tabbed_widgets.addTab(instrument_params_dock, 'Parameters')
-        tabbed_widgets.setCurrentIndex(1)
+        tabbed_widgets.setCurrentIndex(2)
 
         return tabbed_widgets
 

@@ -28,6 +28,7 @@ class TissueMap(WidgetBase):
         self.map_pos_worker = None
         self.camera_fov = None
         self.plot = None
+        self.map_pos_alive = False
 
         self.rotate = {}
         self.map = {}
@@ -60,6 +61,8 @@ class TissueMap(WidgetBase):
         last_index = len(self.tab_widget) - 1
         if index == last_index:                 # Start stage update when on tissue map tab
             self.map_pos_worker = self._map_pos_worker()
+            self.map_pos_alive = True
+            self.map_pos_worker.finished.connect(self.map_pos_worker_finished)
             self.map_pos_worker.start()
 
         else:                                   # Quit updating tissue map if not on tissue map tab
@@ -67,6 +70,11 @@ class TissueMap(WidgetBase):
                 self.map_pos_worker.quit()
 
             pass
+
+    def map_pos_worker_finished(self):
+        """Sets map_pos_alive to false when worker finishes"""
+        print('map_pos_worker_finished')
+        self.map_pos_alive = False
 
     def overview_widget(self):
 
@@ -106,7 +114,7 @@ class TissueMap(WidgetBase):
         self.overview_worker = self._overview_worker()
         self.overview_worker.finished.connect(lambda: self.overview_finish())  # Napari threads have finished signals
         self.overview_worker.start()
-        sleep(2)
+
         self.viewer.layers.clear()  # Clear existing layers
         self.volumetric_image_worker = create_worker(self.instrument._livestream_worker)
         self.volumetric_image_worker.yielded.connect(self.update_layer)
@@ -175,19 +183,25 @@ class TissueMap(WidgetBase):
         self.plot.addItem(self.setup)  # Remove and add objectives to see view through them
 
         self.map_pos_worker = self._map_pos_worker()
+        self.map_pos_alive = True
+        self.map_pos_worker.finished.connect(self.map_pos_worker_finished)
         self.map_pos_worker.start()  # Restart map update
 
     @thread_worker
     def _overview_worker(self):
 
-        # self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
-        #                                                                             self.cfg.tile_overlap_y_percent)
-        #
-        # self.overview_array, self.xtiles, self.ytiles = self.instrument.overview_scan()
+        self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
+                                                                                    self.cfg.tile_overlap_y_percent)
 
-        self.overview_array = [tifffile.imread(fr'D:\overview_img_488_2023-08-07_09-09-36.tiff')]
-        self.xtiles = 4
-        self.ytiles = 3
+        while self.map_pos_alive == True:   # Stalling til map pos worker quits
+            sleep(.5)
+            yield
+        self.overview_array, self.xtiles, self.ytiles = self.instrument.overview_scan()
+
+
+        # self.overview_array = [tifffile.imread(fr'D:\overview_img_488_2023-08-07_09-09-36.tiff')]
+        # self.xtiles = 4
+        # self.ytiles = 3
 
         # Recalculate Limits based on new zero in place
         limits = self.remap_axis({'x': [-27, 9], 'y': [-7, 7], 'z': [-3, 20]}) if self.instrument.simulated else \
@@ -337,6 +351,7 @@ class TissueMap(WidgetBase):
                                           0.0, 1.0, 0.0, gui_coord['z'],
                                           0.0, 0.0, 0.0, 1.0))
 
+
                 if self.instrument.start_pos == None:
 
                     # Translate volume of scan to gui coordinate plane
@@ -363,10 +378,11 @@ class TissueMap(WidgetBase):
                         self.draw_tiles(start)
                     self.draw_volume(start, self.remap_axis({k : self.cfg.imaging_specs[f'volume_{k}_um'] * .001
                                                        for k in self.map_pose.keys()}))
+
             except:
                 pass
             finally:
-                sleep(.5)
+                sleep(.01)
                 yield   # Yield so thread can stop
 
 

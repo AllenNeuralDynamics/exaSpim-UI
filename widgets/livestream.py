@@ -154,9 +154,6 @@ class Livestream(WidgetBase):
             self.livestream_worker.yielded.connect(self.update_layer)
         self.livestream_worker.start()
 
-        sleep(2)    # Allow livestream to start
-
-
         self.sample_pos_worker = self._sample_pos_worker()
         self.sample_pos_worker.start()
 
@@ -299,12 +296,11 @@ class Livestream(WidgetBase):
     @thread_worker
     def _sample_pos_worker(self):
         """Update position widgets for volumetric imaging or manually moving"""
-
+        sleep(2)
         self.log.info('Starting stage update')
         # While livestreaming and looking at the first tab the stage position updates
         while self.instrument.livestream_enabled.is_set():
-            if self.tab_widget.currentIndex() != len(self.tab_widget) - 1:
-
+            if self.tab_widget.currentIndex() == 0:
                 moved = False
                 try:
                     self.sample_pos = self.instrument.sample_pose.get_position()
@@ -314,14 +310,16 @@ class Livestream(WidgetBase):
                             if self.pos_widget[direction].value() != new_pos:
                                 self.pos_widget[direction].setValue(new_pos)
                                 moved = True
+
                     if self.instrument.scout_mode and moved:
                         self.start_stop_ni()
                     self.update_slider(self.sample_pos)  # Update slide with newest z depth
                 except:
                     # Deal with garbled replies from tigerbox
                     pass
+
             yield
-            sleep(.5)
+
 
     def screenshot_button(self):
 
@@ -357,7 +355,7 @@ class Livestream(WidgetBase):
         self.move_stage['slider'].setInvertedAppearance(True)
         self.move_stage['slider'].setMinimum(self.z_limit["y"][0])
         self.move_stage['slider'].setMaximum(self.z_limit["y"][1])
-        self.move_stage['slider'].setValue(int(z_position['Z']))
+        self.move_stage['slider'].setValue(int(z_position['Z']/10))
         self.move_stage['slider'].setTracking(False)
         self.move_stage['slider'].sliderReleased.connect(self.move_stage_vertical_released)
         self.move_stage['low'] = QLabel(
@@ -388,7 +386,7 @@ class Livestream(WidgetBase):
             self.move_stage['slider'].setValue(location)
             self.move_stage_textbox(location)
         self.tab_widget.setTabEnabled(len(self.tab_widget)-1, False)
-        self.move_stage_worker = create_worker(lambda location = location: self.instrument.tigerbox.move_absolute(z=location))
+        self.move_stage_worker = create_worker(lambda location = location*10: self.instrument.tigerbox.move_absolute(z=location))
         self.move_stage_worker.start()
         self.move_stage_worker.finished.connect(lambda:self.enable_stage_slider())
 

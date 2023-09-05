@@ -8,6 +8,7 @@ import logging
 from napari.qt.threading import thread_worker, create_worker
 from time import sleep
 import qtpy.QtCore as QtCore
+from qtpy.QtGui import QValidator
 from datetime import timedelta, datetime
 import calendar
 
@@ -50,6 +51,16 @@ class VolumetericAcquisition(WidgetBase):
 
     def run_volumeteric_imaging(self):
 
+        if self.instrument.livestream_enabled.is_set():
+            self.error_msg('Livestream', 'Livestream is still set. Please stop livestream')
+            return
+        if self.cfg.x_anatomical_direction == '' \
+                or self.cfg.y_anatomical_direction == '' \
+                or self.cfg.x_anatomical_direction == '':
+            self.error_msg('Orientation', 'Orientation isn"t set. '
+                                          'Please specify orientation in the instrument parameter orientation tab')
+
+            return
         if self.volumetric_image['overwrite'].isChecked():
             return_value = self.overwrite_warning()
             if return_value == QMessageBox.Cancel:
@@ -57,6 +68,8 @@ class VolumetericAcquisition(WidgetBase):
         return_value = self.scan_summary()
         if return_value == QMessageBox.Cancel:
             return
+
+
 
         for i in range(1,len(self.tab_widget)):
             self.tab_widget.setTabEnabled(i,False)
@@ -105,7 +118,7 @@ class VolumetericAcquisition(WidgetBase):
         QtCore.QMetaObject.invokeMethod(self.progress['end_time'], 'setHidden', QtCore.Q_ARG(bool, False))
         QtCore.QMetaObject.invokeMethod(self.progress['bar'], 'setValue', QtCore.Q_ARG(int, 0))
         while self.instrument.total_tiles == 0:
-            sleep(.5)       # Stall since the following meterics won't be calculated yet
+            yield       # Stall since the following meterics won't be calculated yet
         total_tiles = self.instrument.total_tiles
         z_tiles = total_tiles / self.instrument.x_y_tiles
         time_scale = self.instrument.x_y_tiles/86400
@@ -129,7 +142,6 @@ class VolumetericAcquisition(WidgetBase):
             date_str = completion_date.strftime("%d %b, %Y at %H:%M %p")
             weekday = calendar.day_name[completion_date.weekday()]
             self.progress['end_time'].setText(f"End Time: {weekday}, {date_str}")
-            sleep(.5)
             yield  # So thread can stop
 
     def scan_summary(self):
@@ -205,23 +217,40 @@ class VolumetericAcquisition(WidgetBase):
 
         directions = ['x', 'y', 'z']
         self.min_max_widgets = {}
-
         self.min_max_widgets['Min_limit'] = QLabel('Minimum Limits')
         self.min_max_widgets['Max_limit'] = QLabel('Maximum Limits')
         for direction in directions:
             self.limits[f'{direction}'] = [None,None]
 
-            self.min_max_widgets[direction+'min'] = QPushButton(f'{direction} min limit')
-            self.min_max_widgets[direction+'min'].clicked.connect(lambda direction=direction, extreme='min':self.set_limit(direction, extreme))
-            self.min_max_widgets[direction + 'minlabel'] = QLabel(':')
+            self.min_max_widgets[direction+'min'] = QPushButton(f'Set {direction} min limit')
+            self.min_max_widgets[direction+'min'].clicked.connect(lambda pushed = None,
+                                                                         direction=direction,
+                                                                         extreme='min':
+                                                                  self.set_limit(pushed, direction, extreme))
+            self.min_max_widgets[direction + 'minlabel'] = QLineEdit(':')
+            self.min_max_widgets[direction + 'minlabel'].editingFinished.connect((lambda entered = True,
+                                                                         direction=direction,
+                                                                         extreme='min':
+                                                                  self.edit_limit(entered, direction, extreme)))
 
-            self.min_max_widgets[direction+'max'] = QPushButton(f'{direction} max limit')
-            self.min_max_widgets[direction + 'maxlabel'] = QLabel(':')
+            self.min_max_widgets[direction + 'minlabel'].setInputMask(":xxxxxxxx um")
+            self.min_max_widgets[direction + 'max'] = QPushButton(f'Set {direction} max limit')
+            self.min_max_widgets[direction + 'maxlabel'] = QLineEdit(':')
+            self.min_max_widgets[direction + 'maxlabel'].editingFinished.connect((lambda entered = True,
+                                                                         direction=direction,
+                                                                         extreme='max':
+                                                                  self.edit_limit(entered, direction, extreme)))
+
+            self.min_max_widgets[direction + 'maxlabel'].setInputMask(":xxxxxxxx um")
             self.min_max_widgets[direction+'max'].clicked.connect(
-                lambda direction=direction, extreme='max': self.set_limit(direction, extreme))
+                lambda pushed=None,
+                       direction=direction,
+                       extreme='max':
+                self.set_limit(pushed, direction, extreme))
 
         self.min_max_widgets['calculate'] = QPushButton('Calculate Starting Position')
-        self.min_max_widgets['calculate'].setDisabled(True)
+        self.min_max_widgets['calculate'].clicked.connect(self.calculate_scan_position)
+        self.min_max_widgets['calculate'].setEnabled(False)
         self.min_max_widgets['calculate label'] = QLabel()
 
         min_widgets = self.create_layout(struct='H',**{k:v for k,v in self.min_max_widgets.items() if 'min' in k})
@@ -230,40 +259,81 @@ class VolumetericAcquisition(WidgetBase):
         return self.create_layout(struct='V', min_label =self.min_max_widgets['Min_limit'], min_widgets=min_widgets,
                                   max_label=self.min_max_widgets['Max_limit'], max_widgets=max_widgets,
                                   calculate =calculate_widget)
-    def set_limit(self, direction, extreme):
+    def set_limit(self, pushed, direction, extreme):
 
-        """Set min and max limits for x, y, z"""
+        """Set min and max limits for x, y, z with button"""
 
-        position = self.instrument.sample_pose.get_position(direction)
-        self.min_max_widgets[direction+extreme].setText(f': {position[direction]/10} um')
+        position = self.instrument.sample_pose.get_position()
+        self.min_max_widgets[direction+extreme+'label'].setText(f': {position[direction]/10} um')
         if extreme == 'min':
-            self.limits[f'{direction}'][0] = position[direction]
+            self.limits[f'{direction}'][0] = position[direction]/10
         else:
-            self.limits[f'{direction}'][1] = position[direction]
-        if None not in self.limits.values():
-            self.min_max_widgets['calculate'].setDisabled(False)
+            self.limits[f'{direction}'][1] = position[direction]/10
+        for v in self.limits.values():
+            if None in v or '' in v:
+                return
+        self.min_max_widgets['calculate'].setEnabled(True)
+
+    def edit_limit(self, entered, direction, extreme):
+
+        """Set min and max limits for x, y, z with  line edit """
+
+        text = self.min_max_widgets[direction+extreme+'label'].text()
+        value = text.replace('um','')
+        position = value.replace(':', '')
+        try:
+            if extreme == 'min':
+                self.limits[f'{direction}'][0] = float(position)
+            else:
+                self.limits[f'{direction}'][1] = float(position)
+            for v in self.limits.values():
+                if None in v or '' in v:
+                    return
+            self.min_max_widgets['calculate'].setEnabled(True)
+        except ValueError:
+            pass
 
     def calculate_scan_position(self):
 
         """Calculate volume, tiles, and position of scan"""
 
         size = {k:v[1]-v[0] for k,v in self.limits.items()}
-        x, y = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+        x, y, z = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
                                                 self.cfg.tile_overlap_y_percent,
                                                 self.cfg.z_step_size_um,
                                                 abs(size['x']),
                                                 abs(size['y']),
                                                 abs(size['z']))
-
-        centroid = {k:v/2 for k,v in size.items()}
+        centroid = {k:self.limits[k][0] + v/2 for k,v in size.items()}
         x_grid_step_um, y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
                                                                           self.cfg.tile_overlap_y_percent)
 
-        start_position = {'x': centroid['x']-((x/2)*(x_grid_step_um*10)),
-                          'y': centroid['y']-((y/2)*(y_grid_step_um*10)),
+        start_position = {'x': round(centroid['x']-((x/2)*(x_grid_step_um)), 1),
+                          'y': round(centroid['y']-((y/2)*(y_grid_step_um)),1),
                           'z': self.limits['z'][0]}
         self.min_max_widgets['calculate label'].setText(str(start_position))
+        self.exceed_stage_limit_check(start_position)
 
+    def exceed_stage_limit_check(self, start_pos_um:dict = None):
+
+        """Check if scan with parameters in the cfg will exceed stage limits
+        :param start_pos_um: start position of scan in um"""
+
+        limits_mm = self.instrument.sample_pose.get_travel_limits(*['x', 'y', 'z'])
+        limits_um = {k: [v[0] * 1000, v[1] * 1000] for k, v in limits_mm.items()}
+        if start_pos_um == None:
+            start_pos = self.instrument.sample_pose.get_position()
+            start_pos_um = {k: v / 10 for k, v in start_pos.items()}
+        limit_exceeded = []
+        for k in limits_um.keys():
+            end_pos = start_pos_um[k] + getattr(self.cfg, f'volume_{k}_um')
+            if not limits_um[k][0] < end_pos < limits_um[k][1] or not limits_um[k][0] < start_pos_um[k] < limits_um[k][
+                1]:
+                limit_exceeded.append(k)
+        if limit_exceeded != []:
+            self.error_msg('CAUTION', 'Starting stage at this position with '
+                                      'these scan parameters will exceed stage '
+                                      f'limits in these directions: {limit_exceeded}')
 
 
 

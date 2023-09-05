@@ -1,9 +1,12 @@
 from widgets.widget_base import WidgetBase
 from qtpy.QtWidgets import QLineEdit, QVBoxLayout, QWidget, \
-    QHBoxLayout, QLabel, QDoubleSpinBox, QComboBox, QComboBox, QDial, QToolButton
+    QHBoxLayout, QLabel, QDoubleSpinBox, QComboBox, QComboBox, QDial, QToolButton, QRadioButton
 from qtpy.QtGui import QIntValidator
 from tigerasi.device_codes import JoystickInput
+from qtpy.QtGui import QPixmap, QImage
 import qtpy.QtCore as QtCore
+import numpy as np
+import cv2
 
 def get_dict_attr(class_def, attr):
     # for obj in [obj] + obj.__class__.mro():
@@ -160,5 +163,58 @@ class InstrumentParameters(WidgetBase):
         # Update joystick axis
         self.joystick_axes[joystick_axis] = stage_ax
 
+    def brain_orientation_widget(self):
 
+        """Widget to set brain orientation"""
+        # Clear brain orientation from last run
+        self.cfg.x_anatomical_direction = ''
+        self.cfg.y_anatomical_direction = ''
+        self.cfg.z_anatomical_direction = ''
 
+        orientation = ['right', 'left', 'flip right', 'flip left']
+        self.orientaion_widget = {}
+
+        for pos in orientation:
+            img = cv2.imread(r'C:\Users\Administrator\Documents\Github\exaSpim-UI\mid-sagittal-brain.png')
+            label = {'x':'Posterior_to_anterior',
+                     'y': 'Inferior_to_superior',
+                     'z': 'Right_to_left'}
+            if 'flip' in pos:
+                img = cv2.flip(img, 0)
+                label['y'] = 'Superior_to_inferior'
+            if 'right' in pos:
+                img = cv2.flip(img, 1)
+                label['x'] = 'Anterior_to_posterior'
+            if pos != 'left' and pos != 'flip right':
+                label['z'] = 'Left_to_right'
+
+            pixmap = QImage(img, img.shape[1], img.shape[0], QImage.Format_BGR888)
+            img_widget = QLabel()
+            img_widget.setPixmap(QPixmap(pixmap.scaled(150, 150, QtCore.Qt.KeepAspectRatio)))
+            set_button = QRadioButton()
+            set_button.toggled.connect(lambda state = 2, orientations = label, key = pos:
+                                       self.set_brain_orientation(state, orientations, key))
+            self.orientaion_widget[pos] = self.create_layout("V", image =img_widget, box =set_button)
+
+        return self.create_layout('VH', **self.orientaion_widget)
+
+    def set_brain_orientation(self, state, orientations: dict, key):
+
+        """Function to set brain orientation in config"""
+
+        # State is 2 if checkmark is pressed
+        if state:
+            for k in self.orientaion_widget.keys():
+                if k != key:
+                    self.orientaion_widget[k].children()[2].blockSignals(True)
+                    self.orientaion_widget[k].children()[2].setChecked(False)     # Radiobox in layout
+                    self.orientaion_widget[k].children()[2].blockSignals(False)
+            self.cfg.x_anatomical_direction = orientations['x']
+            self.cfg.y_anatomical_direction = orientations['y']
+            self.cfg.z_anatomical_direction = orientations['z']
+
+        else:
+
+            self.cfg.x_anatomical_direction = ''
+            self.cfg.y_anatomical_direction = ''
+            self.cfg.z_anatomical_direction = ''
