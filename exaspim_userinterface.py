@@ -17,8 +17,6 @@ class UserInterface:
                  console_output_level: str = 'info',
                  simulated: bool = False):
 
-        try:
-            # TODO: Create logger tab at bottom of napari viewer. Also make logger for each class as well
             self.instrument = exaspim.Exaspim(config_filepath=config_filepath, simulated=simulated)
             self.simulated = simulated
             self.cfg = self.instrument.cfg
@@ -80,12 +78,6 @@ class UserInterface:
 
             self.viewer.scale_bar.visible = True
             self.viewer.scale_bar.unit = "um"
-            napari.gui_qt()
-            napari.run()
-
-        finally:
-
-            self.close_instrument()
 
 
     def instrument_params_widget(self):

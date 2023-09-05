@@ -35,6 +35,7 @@ class VolumetericAcquisition(WidgetBase):
         self.progress = {}
         self.data_line = None       # Lines for graph
         self.limits = {}
+        self.scans = []  # Scans performed in the UI instance
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -44,29 +45,36 @@ class VolumetericAcquisition(WidgetBase):
 
         self.volumetric_image = {'start': QPushButton('Start Volumetric Imaging'),
                                  'overwrite': QCheckBox('Overwrite')}
-        self.volumetric_image['start'].clicked.connect(self.run_volumeteric_imaging)
+        self.volumetric_image['start'].pressed.connect(self.run_volumeteric_imaging)
         # Put in seperate function so upon initiation of gui, run() funtion does not start
 
         return self.create_layout(struct='H', **self.volumetric_image)
 
     def run_volumeteric_imaging(self):
 
+        self.volumetric_image['start'].blockSignals(True)  # Block release signal so transferring json doesn't start
+
         if self.instrument.livestream_enabled.is_set():
             self.error_msg('Livestream', 'Livestream is still set. Please stop livestream')
+            self.volumetric_image['start'].blockSignals(False)
             return
         if self.cfg.x_anatomical_direction == '' \
                 or self.cfg.y_anatomical_direction == '' \
                 or self.cfg.x_anatomical_direction == '':
             self.error_msg('Orientation', 'Orientation isn"t set. '
                                           'Please specify orientation in the instrument parameter orientation tab')
+            self.volumetric_image['start'].blockSignals(False)
 
             return
+
         if self.volumetric_image['overwrite'].isChecked():
             return_value = self.overwrite_warning()
             if return_value == QMessageBox.Cancel:
+                self.volumetric_image['start'].blockSignals(False)
                 return
         return_value = self.scan_summary()
         if return_value == QMessageBox.Cancel:
+            self.volumetric_image['start'].blockSignals(False)
             return
 
 
@@ -97,7 +105,11 @@ class VolumetericAcquisition(WidgetBase):
         self.run_worker.quit()
         self.volumetric_image_worker.quit()
         self.viewer.layers.clear()      # Gui crashes if you zoom in on last uploaded image.
-        # Maybe also just upload the most downsampled image as solution?
+        dest = str(self.instrument.img_storage_dir) if self.instrument.img_storage_dir != None else str(
+            self.instrument.local_storage_dir)
+        self.scans.append(dest)
+        self.volumetric_image['start'].blockSignals(False)
+        self.volumetric_image['start'].released.emit()  # Signal that scans are done
 
     def progress_bar_widget(self):
 

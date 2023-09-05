@@ -58,7 +58,6 @@ class Lasers(WidgetBase):
     def selected_wv_label(self):
 
         """Adds labels for all possible wavelengths"""
-        print('hello')
         for wavelengths in self.possible_wavelengths:
             wavelengths = str(wavelengths)
             self.selected[wavelengths] = QPushButton(wavelengths)
