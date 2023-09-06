@@ -17,9 +17,9 @@ end_tile_index = 14
 experimenters_name = "Xiaoyun Jiang"
 immersion_medium = "0.05X SSC"
 immersion_medium_refractive_index = 1.33
-x_anatomical_direction = "Anterior_to_posterior"
-y_anatomical_direction = "Inferior_to_superior"
-z_anatomical_direction = "Left_to_right"
+x_anatomical_direction = ""
+y_anatomical_direction = ""
+z_anatomical_direction = ""
 
 [design_specs]
 slit_width_pixels = 480.0
@@ -97,6 +97,11 @@ driver = "Oxxius"
 color = "red"
 hex_color = "#000000"
 ao_channel = 4
+
+[joystick_kwds.axis_map]
+x = 2
+y = 3
+z = 22
 
 [sample_pose_kwds.axis_map]
 x = "y"

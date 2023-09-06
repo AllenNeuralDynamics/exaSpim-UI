@@ -72,6 +72,12 @@ class VolumetericAcquisition(WidgetBase):
             if return_value == QMessageBox.Cancel:
                 self.volumetric_image['start'].blockSignals(False)
                 return
+
+        # Check if scan is will exceed stage limits. Will use config values and current pos
+        if self.exceed_stage_limit_check():
+            self.volumetric_image['start'].blockSignals(False)
+            return
+
         return_value = self.scan_summary()
         if return_value == QMessageBox.Cancel:
             self.volumetric_image['start'].blockSignals(False)
@@ -274,7 +280,7 @@ class VolumetericAcquisition(WidgetBase):
         """Set min and max limits for x, y, z with button"""
 
         position = self.instrument.sample_pose.get_position()
-        self.min_max_widgets[direction+extreme+'label'].setText(f': {position[direction]/10} um')
+        self.min_max_widgets[direction+extreme+'label'].setText(f': {position[direction]/10}')
         if extreme == 'min':
             self.limits[f'{direction}'][0] = position[direction]/10
         else:
@@ -321,10 +327,12 @@ class VolumetericAcquisition(WidgetBase):
         start_position = {'x': round(centroid['x']-((x/2)*(x_grid_step_um)), 1),
                           'y': round(centroid['y']-((y/2)*(y_grid_step_um)),1),
                           'z': self.limits['z'][0]}
-        self.min_max_widgets['calculate label'].setText(str(start_position))
-        self.exceed_stage_limit_check(start_position)
+        f"Scan Summary\n"
+        f"Lasers: {self.cfg.channels}\n"
+        self.min_max_widgets['calculate label'].setText(f"Start Position: {start_position}\nVolume: {size}")
+        self.exceed_stage_limit_check(start_position, size)
 
-    def exceed_stage_limit_check(self, start_pos_um:dict = None):
+    def exceed_stage_limit_check(self, start_pos_um:dict = None, volume:dict = None):
 
         """Check if scan with parameters in the cfg will exceed stage limits
         :param start_pos_um: start position of scan in um"""
@@ -336,7 +344,8 @@ class VolumetericAcquisition(WidgetBase):
             start_pos_um = {k: v / 10 for k, v in start_pos.items()}
         limit_exceeded = []
         for k in limits_um.keys():
-            end_pos = start_pos_um[k] + getattr(self.cfg, f'volume_{k}_um')
+            end_pos = start_pos_um[k] + getattr(self.cfg, f'volume_{k}_um') \
+                if volume == None else start_pos_um[k] + volume[k]
             if not limits_um[k][0] < end_pos < limits_um[k][1] or not limits_um[k][0] < start_pos_um[k] < limits_um[k][
                 1]:
                 limit_exceeded.append(k)
@@ -344,6 +353,8 @@ class VolumetericAcquisition(WidgetBase):
             self.error_msg('CAUTION', 'Starting stage at this position with '
                                       'these scan parameters will exceed stage '
                                       f'limits in these directions: {limit_exceeded}')
+            return True
+        return False
 
 
 
