@@ -9,7 +9,7 @@ z_step_size_um = 1
 volume_x_um = 10000
 volume_y_um = 6000
 volume_z_um = 10
-laser_wavelengths = [ 561,]
+laser_wavelengths = [ 405, 488, 561, 638,]
 start_tile_index = 0
 end_tile_index = 14
 
@@ -79,24 +79,28 @@ driver = "Oxxius"
 color = "blue"
 hex_color = "#00ff92"
 ao_channel = 3
+ao_voltage = 10.0
 
 [channel_specs.561]
 driver = "Oxxius"
 color = "yellowgreen"
 hex_color = "#c6ff00"
 ao_channel = 5
+ao_voltage = 6.69
 
 [channel_specs.405]
 driver = "Oxxius"
 color = "purple"
 hex_color = "#000000"
 ao_channel = 6
+ao_voltage = 10.0
 
 [channel_specs.638]
 driver = "Oxxius"
 color = "red"
 hex_color = "#000000"
 ao_channel = 4
+ao_voltage = 4.27
 
 [joystick_kwds.axis_map]
 x = 2
