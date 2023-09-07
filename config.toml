@@ -89,11 +89,16 @@ ao_channel = 5
 ao_voltage = 6.69
 
 [channel_specs.405]
-driver = "Oxxius"
+driver = "exaspim.devices.aotf_laser"
+module_path = "AOTFLaser"
 color = "purple"
 hex_color = "#000000"
 ao_channel = 6
 ao_voltage = 10.0
+
+[channel_specs.405.kwds]
+wl = '405'
+cfg = '.cfg'
 
 [channel_specs.638]
 driver = "Oxxius"
@@ -165,9 +170,6 @@ setpoint = -0.5
 
 [channel_specs.405.galvo_b]
 setpoint = -0.5
-
-[channel_specs.405.kwds]
-port = "COMxx"
 
 [channel_specs.638.camera]
 delay_time_s = 0
