@@ -1,15 +1,15 @@
 [imaging_specs]
 local_storage_directory = "D:\\"
-external_storage_directory = "D:\\test"
-subject_id = "test"
+external_storage_directory = "Z:\\stage\\exaSPIM"
+subject_id = "651895"
 tile_prefix = "tile"
 tile_overlap_x_percent = 15
 tile_overlap_y_percent = 15
 z_step_size_um = 1
-volume_x_um = 10000
-volume_y_um = 6000
-volume_z_um = 10
-laser_wavelengths = [ 405, 488, 561, 638,]
+volume_x_um = 40000
+volume_y_um = 20000
+volume_z_um = 28672
+laser_wavelengths = [ 488,]
 start_tile_index = 0
 end_tile_index = 14
 
@@ -17,9 +17,9 @@ end_tile_index = 14
 experimenters_name = "Xiaoyun Jiang"
 immersion_medium = "0.05X SSC"
 immersion_medium_refractive_index = 1.33
-x_anatomical_direction = ""
-y_anatomical_direction = ""
-z_anatomical_direction = ""
+x_anatomical_direction = "Anterior_to_posterior"
+y_anatomical_direction = "Inferior_to_superior"
+z_anatomical_direction = "Left_to_right"
 
 [design_specs]
 slit_width_pixels = 480.0
@@ -86,7 +86,7 @@ driver = "Oxxius"
 color = "yellowgreen"
 hex_color = "#c6ff00"
 ao_channel = 5
-ao_voltage = 6.69
+ao_voltage = 10.0
 
 [channel_specs.405]
 driver = "exaspim.devices.aotf_laser"
@@ -96,16 +96,12 @@ hex_color = "#000000"
 ao_channel = 6
 ao_voltage = 10.0
 
-[channel_specs.405.kwds]
-wl = '405'
-cfg = '.cfg'
-
 [channel_specs.638]
 driver = "Oxxius"
 color = "red"
 hex_color = "#000000"
 ao_channel = 4
-ao_voltage = 4.27
+ao_voltage = 10.0
 
 [joystick_kwds.axis_map]
 x = 2
@@ -154,6 +150,10 @@ setpoint = 0
 
 [channel_specs.561.kwds]
 port = "COMxx"
+
+[channel_specs.405.kwds]
+wl = "405"
+cfg = ".cfg"
 
 [channel_specs.405.camera]
 delay_time_s = 0

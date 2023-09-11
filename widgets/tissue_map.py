@@ -290,6 +290,7 @@ class TissueMap(WidgetBase):
 
         # State is 2 if checkmark is pressed
         if state == 2:
+            #self.plot.setEnabled(False)
             # Grid steps in sample pose coords
             self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
                                                                                         self.cfg.tile_overlap_y_percent)
@@ -303,6 +304,7 @@ class TissueMap(WidgetBase):
 
         # State is 0 if checkmark is unpressed
         if state == 0:
+            #self.plot.setEnabled(True)
             for item in self.tiles:
                 if item in self.plot.items:
                     self.plot.removeItem(item)
@@ -329,7 +331,6 @@ class TissueMap(WidgetBase):
     def _map_pos_worker(self):
 
         """Update position of stage for tissue map, draw scanning volume, and tiling"""
-
         while True:
 
             try:    # TODO: This is hack for when tigerbox reply is split e.g. '3\r:A4 -76 0 \n'
@@ -364,8 +365,11 @@ class TissueMap(WidgetBase):
                                                                      0, 1, 0, gui_coord['y'] - self.tile_offset['y'],
                                                                      0, 0, 1, gui_coord['z'] - self.tile_offset['z'],
                                                                      0, 0, 0, 1))
+
                     if self.checkbox['tiling'].isChecked():
-                        self.draw_tiles(gui_coord)  # Draw tiles if checkbox is checked
+                        if old_coord != gui_coord or self.tiles == [] or \
+                                self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
+                            self.draw_tiles(gui_coord)  # Draw tiles if checkbox is checked if something has changed
 
                 else:
 
@@ -378,11 +382,10 @@ class TissueMap(WidgetBase):
                         self.draw_tiles(start)
                     self.draw_volume(start, self.remap_axis({k : self.cfg.imaging_specs[f'volume_{k}_um'] * .001
                                                        for k in self.map_pose.keys()}))
-
             except:
                 pass
             finally:
-                sleep(.01)
+                old_coord = gui_coord
                 yield   # Yield so thread can stop
 
 
@@ -391,7 +394,7 @@ class TissueMap(WidgetBase):
         """Draw tiles of proposed scan volume.
         :param coord: coordinates of bottom corner of volume in sample pose"""
 
-        # Check if volume in config has changed
+        #Check if volume in config has changed
         if self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
             self.set_tiling(2)  # Update grid steps and tile numbers
             self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
@@ -413,7 +416,7 @@ class TissueMap(WidgetBase):
                     }
                 num_pos = [tile_pos['x'],
                            tile_pos['y'] + (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
-                           tile_pos['z'] + (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um']))]
+                           tile_pos['z'] - (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um']))]
 
                 tile_volume = self.remap_axis({'x': self.cfg.tile_specs['x_field_of_view_um'] * .001,
                                                'y': self.cfg.tile_specs['y_field_of_view_um'] * .001,
@@ -482,7 +485,7 @@ class TissueMap(WidgetBase):
         """Remaps sample pose coordinates to gui 3d map coordinates.
         Sample pose comes in dictionary with uppercase keys and gui uses lowercase"""
 
-        remap = {'x': 'z', 'y': 'x', 'z': 'y'} if remap == {} else remap
+        remap = {'x': 'z', 'y': 'x', 'z': '-y'} if remap == {} else remap
         remap_coords = {}
 
         for k, v in remap.items():
@@ -514,7 +517,6 @@ class TissueMap(WidgetBase):
             axes_len[dir] = abs(round(up[dir] - low[dir]))
             self.origin[dir] = round(low[dir] + (axes_len[dir] / 2))
         self.plot.opts['center'] = QtGui.QVector3D(self.origin['x'], self.origin['y'], self.origin['z'])
-
         # x axes: Translate axis so origin of graph translate to center of stage limits
         # Z coords increase as stage moves down so z origin and coords are negative
         self.x_axis = self.create_axes((90, 0, 1, 0),

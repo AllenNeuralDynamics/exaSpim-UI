@@ -342,10 +342,21 @@ class VolumetericAcquisition(WidgetBase):
         if start_pos_um == None:
             start_pos = self.instrument.sample_pose.get_position()
             start_pos_um = {k: v / 10 for k, v in start_pos.items()}
+
+        # Calculate tiles for volume
+        x, y, z = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+                                                  self.cfg.tile_overlap_y_percent,
+                                                  self.cfg.z_step_size_um,
+                                                  self.cfg.volume_x_um if volume == None else volume['x'],
+                                                  self.cfg.volume_y_um if volume == None else volume['y'],
+                                                  self.cfg.volume_z_um if volume == None else volume['z'])
+        x_grid_step_um, y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
+                                                                        self.cfg.tile_overlap_y_percent)
+        volume = {'x': (x-1)*x_grid_step_um, 'y': (y-1)*y_grid_step_um, 'z':z}
         limit_exceeded = []
         for k in limits_um.keys():
-            end_pos = start_pos_um[k] + getattr(self.cfg, f'volume_{k}_um') \
-                if volume == None else start_pos_um[k] + volume[k]
+            end_pos = start_pos_um[k] + volume[k]
+
             if not limits_um[k][0] < end_pos < limits_um[k][1] or not limits_um[k][0] < start_pos_um[k] < limits_um[k][
                 1]:
                 limit_exceeded.append(k)
