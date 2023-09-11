@@ -35,7 +35,7 @@ class Lasers(WidgetBase):
         self.dials = {}
         self.dial_widgets = {}
 
-        # self.lasers = {}
+        self.lasers = self.instrument.lasers
         # for wl, specs in self.cfg.channel_specs.items():
         #     laser_class = type('laser', (object,),
         #                        {'get_setpoint': '',
@@ -182,10 +182,10 @@ class Lasers(WidgetBase):
         for wl in self.possible_wavelengths:
             wl = str(wl)
 
-            value = float(self.cfg.get_channel_ao_voltage(wl)*100) if not self.simulated else 15
+            value = float(self.lasers[wl].get_setpoint()) if not self.simulated else 15
             unit = 'mW'
             min = 0
-            max = 1000
+            max = self.lasers[wl].get_max_setpoint()
 
             # Create slider and label
             self.laser_power[f'{wl} label'], self.laser_power[wl] = self.create_widget(
@@ -231,5 +231,5 @@ class Lasers(WidgetBase):
 
         if release:
             self.log.info(f'Setting laser {wl} to {value} {unit}')
-            self.cfg.set_channel_ao_voltage(str(wl), value / 100)
+            self.lasers[wl].set_setpoint(float(round(value)))
 
