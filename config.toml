@@ -90,7 +90,7 @@ ao_voltage = 6.69
 
 [channel_specs.405]
 driver = "exaspim.devices.aotf_laser"
-module_path = "AOTFLaser"
+module = "AOTFLaser"
 color = "purple"
 hex_color = "#000000"
 ao_channel = 6
@@ -98,7 +98,19 @@ ao_voltage = 10.0
 
 [channel_specs.405.kwds]
 wl = '405'
-cfg = '.cfg'
+cfg = 'self.cfg'
+
+[channel_specs.488.kwds]
+wl = '488'
+cfg = 'self.cfg'
+
+[channel_specs.561.kwds]
+wl = '561'
+cfg = 'self.cfg'
+
+[channel_specs.638.kwds]
+wl = '638'
+cfg = 'self.cfg'
 
 [channel_specs.638]
 driver = "Oxxius"
