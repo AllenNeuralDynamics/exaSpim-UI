@@ -345,7 +345,7 @@ class Livestream(WidgetBase):
         """Widget to move stage up and down w/o joystick control"""
 
         z_position = self.instrument.tigerbox.get_position('z')
-        self.z_limit = self.instrument.sample_pose.get_travel_limits('y')
+        self.z_limit = self.instrument.sample_pose.get_travel_limits('y') if not self.simulated else {'y':[-10000, 10000]}
         self.z_limit['y'] = [round(x*1000) for x in self.z_limit['y']]
         self.z_range = self.z_limit["y"][1] + abs(self.z_limit["y"][0]) # Shift range up by lower limit so no negative numbers
         self.move_stage['up'] = QLabel(

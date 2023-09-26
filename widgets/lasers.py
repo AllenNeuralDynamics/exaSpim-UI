@@ -185,7 +185,7 @@ class Lasers(WidgetBase):
             value = float(self.lasers[wl].get_setpoint()) if not self.simulated else 15
             unit = 'mW'
             min = 0
-            max = self.lasers[wl].get_max_setpoint()
+            max = self.lasers[wl].get_max_setpoint() if not self.simulated else 1000
 
             # Create slider and label
             self.laser_power[f'{wl} label'], self.laser_power[wl] = self.create_widget(
@@ -214,7 +214,6 @@ class Lasers(WidgetBase):
                                                              text=self.laser_power[wl])
 
         return self.create_layout(struct='V', **laser_power_layout)
-
 
     def laser_power_label(self, value, unit, wl: int, release=False):
 

@@ -24,7 +24,7 @@ class create_UI():
 
     def __init__(self):
 
-        simulated = False
+        simulated = True
         log_level = "DEBUG"  # ["INFO", "DEBUG"]
         color_console_output = True
 

@@ -29,19 +29,24 @@ class InstrumentParameters(WidgetBase):
         self.imaging_specs = {}     # dictionary to store attribute labels and input box
 
 
-    def scan_config(self, config: object):
+    def scan_config(self, config: object, x_game_mode: bool = False):
 
         """Scans config and finds property types with setter and getter attributes
         :param config: config object from the instrument class"""
 
         imaging_specs_widgets = {}  # dictionary that holds layout of attribute labels/input pairs
 
-        cpx_attributes = ['exposure_time_s', 'slit_width_pix', 'line_time_us', 'scan_direction_left',
-                          'scan_direction_right']
+        if not x_game_mode:
+            reduced_param = ['ext_storage_dir', 'immersion_medium', 'local_storage_dir',
+                                   'subject_id', 'tile_prefix', 'volume_x_um', 'volume_y_um',
+                                   'volume_z_um']
+            directory = [i for i in dir(config) if i in reduced_param]
+        else:
+            cpx_attributes = ['exposure_time_s', 'slit_width_pix', 'line_time_us', 'scan_direction']
+            directory = [i for i in dir(config) if i not in cpx_attributes]
 
-        for attr in dir(config):
+        for attr in directory:
             value = getattr(config, attr)
-
             if isinstance(value, list):
                 continue
             elif isinstance(getattr(type(config), attr, None), property):
@@ -175,7 +180,7 @@ class InstrumentParameters(WidgetBase):
         self.orientaion_widget = {}
 
         for pos in orientation:
-            img = cv2.imread(r'C:\Users\Administrator\Documents\Github\exaSpim-UI\mid-sagittal-brain.png')
+            img = cv2.imread(r'C:\Users\micah.woodard\PycharmProjects\exaSpim-UI\mid-sagittal-brain.png')
             label = {'x':'Posterior_to_anterior',
                      'y': 'Inferior_to_superior',
                      'z': 'Right_to_left'}
@@ -196,7 +201,14 @@ class InstrumentParameters(WidgetBase):
                                        self.set_brain_orientation(state, orientations, key))
             self.orientaion_widget[pos] = self.create_layout("V", image =img_widget, box =set_button)
 
-        return self.create_layout('VH', **self.orientaion_widget)
+        img_widget = QLabel('Not Applicable')
+        set_button = QRadioButton()
+        set_button.toggled.connect(lambda state=2, orientations={k:'N/A' for k in label.keys()}, key='NA':
+                                   self.set_brain_orientation(state, orientations, key))
+        NA_widget = self.create_layout('V', label=img_widget, button=set_button)
+        orientation_widget = self.create_layout('V', top=self.create_layout('VH', **self.orientaion_widget), bottom=NA_widget)
+        self.orientaion_widget['NA'] = NA_widget # Retroactivily add NA widget to orientation widget to have correct formatting
+        return orientation_widget
 
     def set_brain_orientation(self, state, orientations: dict, key):
 
@@ -218,3 +230,5 @@ class InstrumentParameters(WidgetBase):
             self.cfg.x_anatomical_direction = ''
             self.cfg.y_anatomical_direction = ''
             self.cfg.z_anatomical_direction = ''
+
+        print(self.cfg.x_anatomical_direction,self.cfg.y_anatomical_direction,self.cfg.z_anatomical_direction)
