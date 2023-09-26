@@ -55,12 +55,13 @@ class Livestream(WidgetBase):
 
     def update_positon(self, index):
 
-        directions = ['x', 'y', 'z']
+        directions = ['x', 'y', 'z', 'n']
         if index == 0 and not self.instrument.livestream_enabled.is_set():
 
             try:        # TODO: This is hack for when tigerbox reply is split e.g. '3\r:A4 -76 0 \n'
 
                 self.stage_position = self.instrument.sample_pose.get_position()
+                self.stage_position['n'] = self.instrument.tigerbox.get_position('n')['N']
                 # Update stage labels if stage has moved
                 for direction in directions:
                     self.pos_widget[direction].setValue(int(self.stage_position[direction] * 1 / 10))
@@ -242,8 +243,9 @@ class Livestream(WidgetBase):
 
         """Creates labels and boxs to indicate sample position"""
 
-        directions = ['x', 'y', 'z']
+        directions = ['x', 'y', 'z', 'n']
         self.stage_position = self.instrument.sample_pose.get_position()
+        self.stage_position['n'] = self.instrument.tigerbox.get_position('n')['N']
 
         # Create X, Y, Z labels and displays for where stage is
         for direction in directions:
@@ -304,6 +306,7 @@ class Livestream(WidgetBase):
                 moved = False
                 try:
                     self.sample_pos = self.instrument.sample_pose.get_position()
+                    self.sample_pos['n'] = self.instrument.tigerbox.get_position('n')['N']
                     for direction in self.sample_pos.keys():
                         if direction in self.pos_widget.keys():
                             new_pos = int(self.sample_pos[direction] * 1 / 10)

@@ -231,4 +231,6 @@ class Lasers(WidgetBase):
         if release:
             self.log.info(f'Setting laser {wl} to {value} {unit}')
             self.lasers[wl].set_setpoint(float(round(value)))
+            self.instrument._setup_waveform_hardware(self.instrument.active_lasers,
+                                                     live=self.instrument.livestream_enabled.is_set())
 
