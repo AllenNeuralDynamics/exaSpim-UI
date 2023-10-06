@@ -11,7 +11,7 @@ import stl
 import pyqtgraph as pg
 import tifffile
 import blend_modes
-
+import os
 
 class TissueMap(WidgetBase):
 
@@ -308,6 +308,7 @@ class TissueMap(WidgetBase):
             for item in self.tiles:
                 if item in self.plot.items:
                     self.plot.removeItem(item)
+            self.tiles = []
 
     def set_point(self):
 
@@ -331,6 +332,7 @@ class TissueMap(WidgetBase):
     def _map_pos_worker(self):
 
         """Update position of stage for tissue map, draw scanning volume, and tiling"""
+        gui_coord = self.instrument.sample_pose.get_position()
         while True:
 
             try:    # TODO: This is hack for when tigerbox reply is split e.g. '3\r:A4 -76 0 \n'
@@ -340,7 +342,9 @@ class TissueMap(WidgetBase):
                      #else np.random.randint(-60000, 60000, 3)
 
                 gui_coord = self.remap_axis(coord)  # Remap sample_pos to gui coords
-                self.stage_pos.setData(pos=[gui_coord['x'], gui_coord['y'], gui_coord['z']])
+
+                self.stage_pos.setData(pos=[gui_coord['x'], gui_coord['y'], gui_coord['z']], pxMode = False, size = 1)
+
                 self.camera_fov.setTransform(qtpy.QtGui.QMatrix4x4(1.0, 0.0, 0.0, gui_coord['x']- self.tile_offset['x'],
                                                               0.0, 1.0, 0.0, gui_coord['y'] - self.tile_offset['y'],
                                                               0.0, 0.0, 1.0, gui_coord['z'] - self.tile_offset['z'],
@@ -352,7 +356,7 @@ class TissueMap(WidgetBase):
                                           0.0, 1.0, 0.0, gui_coord['z'],
                                           0.0, 0.0, 0.0, 1.0))
 
-
+                yield
                 if self.instrument.start_pos == None:
 
                     # Translate volume of scan to gui coordinate plane
@@ -370,7 +374,7 @@ class TissueMap(WidgetBase):
                         if old_coord != gui_coord or self.tiles == [] or \
                                 self.initial_volume != [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]:
                             self.draw_tiles(gui_coord)  # Draw tiles if checkbox is checked if something has changed
-
+                    yield
                 else:
 
                     # Remap start position and shift position of scan vol to center of camera fov and convert um to mm
@@ -384,6 +388,7 @@ class TissueMap(WidgetBase):
                                                        for k in self.map_pose.keys()}))
             except:
                 pass
+                yield
             finally:
                 old_coord = gui_coord
                 yield   # Yield so thread can stop
@@ -558,7 +563,7 @@ class TissueMap(WidgetBase):
         self.plot.addItem(self.stage_pos)
 
         try:
-            setup = stl.mesh.Mesh.from_file(r'C:\Users\Administrator\Downloads\exa-spim-tissue-map.stl')
+            setup = stl.mesh.Mesh.from_file(rf'C:\Users\{os.getlogin()}\Documents\exaspim_files\exa-spim-tissue-map.stl')
             points = setup.points.reshape(-1, 3)
             faces = np.arange(points.shape[0]).reshape(-1, 3)
 

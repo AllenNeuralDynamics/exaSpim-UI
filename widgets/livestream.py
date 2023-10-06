@@ -314,13 +314,14 @@ class Livestream(WidgetBase):
                                 self.pos_widget[direction].setValue(new_pos)
                                 moved = True
 
-                    if self.instrument.scout_mode and moved:
-                        self.start_stop_ni()
-                    self.update_slider(self.sample_pos)  # Update slide with newest z depth
+                    if moved:
+                        self.update_slider(self.sample_pos)  # Update slide with newest z depth
+                        if self.instrument.scout_mode:
+                            self.start_stop_ni()
                 except:
                     # Deal with garbled replies from tigerbox
                     pass
-
+                    yield
             yield
 
 
@@ -388,18 +389,21 @@ class Livestream(WidgetBase):
             location = int(self.move_stage['position'].text())
             self.move_stage['slider'].setValue(location)
             self.move_stage_textbox(location)
+        if self.instrument.livestream_enabled.is_set():
+            self.sample_pos_worker.pause()
         self.tab_widget.setTabEnabled(len(self.tab_widget)-1, False)
         self.move_stage_worker = create_worker(lambda location = location*10: self.instrument.tigerbox.move_absolute(z=location))
         self.move_stage_worker.start()
-        self.move_stage_worker.finished.connect(lambda:self.enable_stage_slider())
+        self.move_stage_worker.finished.connect(self.enable_stage_slider)
 
     def enable_stage_slider(self):
-
         """Enable stage slider after stage has finished moving"""
+
         self.move_stage['slider'].setEnabled(True)
         self.move_stage['position'].setEnabled(True)
         self.tab_widget.setTabEnabled(len(self.tab_widget) - 1, True)
-
+        if self.instrument.livestream_enabled.is_set():
+            self.sample_pos_worker.resume()
 
     def move_stage_textbox(self, location):
 

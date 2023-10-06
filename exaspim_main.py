@@ -24,14 +24,14 @@ class create_UI():
 
     def __init__(self):
 
-        simulated = True
-        log_level = "DEBUG"  # ["INFO", "DEBUG"]
+        simulated = False
+        log_level = "INFO"  # ["INFO", "DEBUG"]
         color_console_output = True
 
         if simulated:
-            config_path = rf'C:\Users\{os.getlogin()}\PycharmProjects\exaSpim-UI\config.toml'
+            config_path = rf'C:\Users\{os.getlogin()}\Projects\exaSpim-UI\config.toml'
         else:
-            config_path = rf'C:\Users\{os.getlogin()}\Documents\Github\exaSpim-UI\config.toml'
+            config_path = rf'C:\Users\{os.getlogin()}\Projects\exaSpim-UI\config.toml'
 
         # Setup logging.
         # Create log handlers to dispatch:

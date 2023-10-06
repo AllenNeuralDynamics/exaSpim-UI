@@ -7,6 +7,7 @@ from qtpy.QtGui import QPixmap, QImage
 import qtpy.QtCore as QtCore
 import numpy as np
 import cv2
+import os
 
 def get_dict_attr(class_def, attr):
     # for obj in [obj] + obj.__class__.mro():
@@ -37,9 +38,9 @@ class InstrumentParameters(WidgetBase):
         imaging_specs_widgets = {}  # dictionary that holds layout of attribute labels/input pairs
 
         if not x_game_mode:
-            reduced_param = ['ext_storage_dir', 'immersion_medium', 'local_storage_dir',
-                                   'subject_id', 'tile_prefix', 'volume_x_um', 'volume_y_um',
-                                   'volume_z_um']
+            reduced_param = ['experimenters_name', 'ext_storage_dir', 'immersion_medium', 'local_storage_dir',
+                             'subject_id', 'tile_prefix','tile_size_x_um', 'tile_size_y_um', 'volume_x_um',
+                             'volume_y_um', 'volume_z_um']
             directory = [i for i in dir(config) if i in reduced_param]
         else:
             cpx_attributes = ['exposure_time_s', 'slit_width_pix', 'line_time_us', 'scan_direction']
@@ -56,11 +57,13 @@ class InstrumentParameters(WidgetBase):
 
                     self.imaging_specs[attr, '_label'], self.imaging_specs[attr] = \
                         self.create_widget(getattr(config, attr), QLineEdit, label=attr)
+                    # TODO: Hard coded for now but maybe not in the future
+                    if attr != 'image_dtype' and attr != 'tile_size_x_um' and attr != 'tile_size_y_um':
 
-                    if attr != 'image_dtype':   # TODO: Hard coded for now but maybe not in the future
                         self.imaging_specs[attr].editingFinished.connect \
                             (lambda obj=config, var=attr, widget=self.imaging_specs[attr]:
                              self.set_attribute(obj, var, widget))
+
                     else:
                         self.imaging_specs[attr].setReadOnly(True)
 
@@ -70,8 +73,6 @@ class InstrumentParameters(WidgetBase):
                                                                      label=self.imaging_specs[attr, '_label'],
                                                                      text=self.imaging_specs[attr])
         return self.create_layout(struct='V', **imaging_specs_widgets)
-
-
 
     def joystick_remap_tab(self):
 
@@ -180,7 +181,7 @@ class InstrumentParameters(WidgetBase):
         self.orientaion_widget = {}
 
         for pos in orientation:
-            img = cv2.imread(r'C:\Users\micah.woodard\PycharmProjects\exaSpim-UI\mid-sagittal-brain.png')
+            img = cv2.imread(rf'C:\Users\{os.getlogin()}\Documents\exaspim_files\mid-sagittal-brain.png')
             label = {'x':'Posterior_to_anterior',
                      'y': 'Inferior_to_superior',
                      'z': 'Right_to_left'}
@@ -203,7 +204,7 @@ class InstrumentParameters(WidgetBase):
 
         img_widget = QLabel('Not Applicable')
         set_button = QRadioButton()
-        set_button.toggled.connect(lambda state=2, orientations={k:'N/A' for k in label.keys()}, key='NA':
+        set_button.toggled.connect(lambda state=2, orientations={k:'Other' for k in label.keys()}, key='NA':
                                    self.set_brain_orientation(state, orientations, key))
         NA_widget = self.create_layout('V', label=img_widget, button=set_button)
         orientation_widget = self.create_layout('V', top=self.create_layout('VH', **self.orientaion_widget), bottom=NA_widget)

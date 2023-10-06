@@ -87,7 +87,7 @@ class UserInterface:
         tabbed_widgets.setTabPosition(QTabWidget.North)
         tabbed_widgets.addTab(self.instrument_params.joystick_remap_tab(), 'Joystick')
         tabbed_widgets.addTab(self.instrument_params.brain_orientation_widget(), 'Brain Orientation')
-        x_game_mode = False
+        x_game_mode = True
         widgets = {
 
             'config_properties': self.instrument_params.scan_config(self.cfg, x_game_mode),
