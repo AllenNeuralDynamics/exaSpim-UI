@@ -3,7 +3,7 @@ from qtpy.QtWidgets import  QMessageBox, QLineEdit, QVBoxLayout, QWidget, \
     QHBoxLayout, QLabel, QDoubleSpinBox,  QScrollArea, QFrame, QSpinBox, QSlider,\
     QComboBox
 import qtpy.QtCore as QtCore
-
+import time
 class WidgetBase:
 
     def config_change(self, value, path, dict):

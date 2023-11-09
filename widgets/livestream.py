@@ -9,7 +9,9 @@ from skimage.io import imsave
 from napari.qt.threading import thread_worker, create_worker
 from time import sleep
 import logging
-
+from nidaqmx.constants import TaskMode, FrequencyUnits, Level
+from exaspim.operations.waveform_generator import generate_waveforms
+import time
 
 class Livestream(WidgetBase):
 
@@ -43,10 +45,14 @@ class Livestream(WidgetBase):
         self.tab_widget = None
         self.sample_pos_worker = None
         self.end_scan = None
+        self.move_stage_worker = None
 
         self.livestream_worker = None
         self.scale = [self.cfg.cfg['tile_specs']['x_field_of_view_um'] / self.cfg.sensor_column_count,
                       self.cfg.cfg['tile_specs']['y_field_of_view_um'] / self.cfg.sensor_row_count]
+
+
+        self.instrument._setup_waveform_hardware(self.cfg.channels, live=True)
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -56,7 +62,7 @@ class Livestream(WidgetBase):
     def update_positon(self, index):
 
         directions = ['x', 'y', 'z', 'n']
-        if index == 0 and not self.instrument.livestream_enabled.is_set():
+        if index == 0:
 
             try:        # TODO: This is hack for when tigerbox reply is split e.g. '3\r:A4 -76 0 \n'
 
@@ -68,6 +74,11 @@ class Livestream(WidgetBase):
             except:
                 pass
 
+            if self.instrument.livestream_enabled.is_set():
+                self.sample_pos_worker.resume()
+
+        if index != 0 and self.instrument.livestream_enabled.is_set():
+            self.sample_pos_worker.pause()
 
     def liveview_widget(self):
 
@@ -146,6 +157,12 @@ class Livestream(WidgetBase):
         if self.live_view['start'].text() == 'Start Live View':
             self.live_view['start'].setText('Stop Live View')
 
+        ao_voltages_t = generate_waveforms(self.cfg, channels=[405])
+        self.instrument.ni.ao_task.control(TaskMode.TASK_UNRESERVE)  # Unreserve buffer
+        self.instrument.ni.ao_task.out_stream.output_buf_size = len(
+            ao_voltages_t[0])  # Sets buffer to length of voltages
+        self.instrument.ni.ao_task.control(TaskMode.TASK_COMMIT)
+
         self.instrument.start_livestream(wavelengths, self.live_view_checks['scouting'].isChecked())
         self.livestream_worker = create_worker(self.instrument._livestream_worker)
         self.livestream_worker.finished.connect(self.stop_livestream)
@@ -157,8 +174,8 @@ class Livestream(WidgetBase):
 
         self.sample_pos_worker = self._sample_pos_worker()
         self.sample_pos_worker.start()
-
-
+        if self.tab_widget.currentIndex() != 0:
+            self.sample_pos_worker.pause()
 
         self.live_view['start'].clicked.connect(self.stop_live_view)
         # Only allow stopping once everything is initialized
@@ -302,26 +319,27 @@ class Livestream(WidgetBase):
         self.log.info('Starting stage update')
         # While livestreaming and looking at the first tab the stage position updates
         while self.instrument.livestream_enabled.is_set():
-            if self.tab_widget.currentIndex() == 0:
-                moved = False
-                try:
-                    self.sample_pos = self.instrument.sample_pose.get_position()
-                    self.sample_pos['n'] = self.instrument.tigerbox.get_position('n')['N']
-                    for direction in self.sample_pos.keys():
-                        if direction in self.pos_widget.keys():
-                            new_pos = int(self.sample_pos[direction] * 1 / 10)
-                            if self.pos_widget[direction].value() != new_pos:
-                                self.pos_widget[direction].setValue(new_pos)
-                                moved = True
+            print('update stage position')
+            moved = False
+            try:
+                self.sample_pos = self.instrument.sample_pose.get_position()
+                self.sample_pos['n'] = self.instrument.tigerbox.get_position('n')['N']
+                for direction in self.sample_pos.keys():
+                    if direction in self.pos_widget.keys():
+                        new_pos = int(self.sample_pos[direction] * 1 / 10)
+                        if self.pos_widget[direction].value() != new_pos:
+                            self.pos_widget[direction].setValue(new_pos)
+                            moved = True
 
-                    if moved:
-                        self.update_slider(self.sample_pos)  # Update slide with newest z depth
-                        if self.instrument.scout_mode:
-                            self.start_stop_ni()
-                except:
-                    # Deal with garbled replies from tigerbox
-                    pass
-                    yield
+                if moved:
+                    self.update_slider(self.sample_pos)  # Update slide with newest z depth
+                    if self.instrument.scout_mode:
+                        self.start_stop_ni()
+            except Exception as e:
+                #     # Deal with garbled replies from tigerbox
+                #print(e)
+                pass
+                yield
             yield
 
 
@@ -367,8 +385,7 @@ class Livestream(WidgetBase):
 
         self.move_stage['halt'] = QPushButton('HALT')
         self.move_stage['halt'].clicked.connect(self.update_slider)
-        self.move_stage['halt'].clicked.connect(lambda pressed=True, button=self.move_stage['halt']:
-                                                self.disable_button(pressed,button))
+        self.move_stage['halt'].clicked.connect(lambda: self.disable_button(self.move_stage['halt']))
         self.move_stage['halt'].clicked.connect(self.instrument.tigerbox.halt)
 
         self.move_stage['position'] = QLineEdit(str(z_position['Z']))
@@ -392,12 +409,35 @@ class Livestream(WidgetBase):
         if self.instrument.livestream_enabled.is_set():
             self.sample_pos_worker.pause()
         self.tab_widget.setTabEnabled(len(self.tab_widget)-1, False)
-        self.move_stage_worker = create_worker(lambda location = location*10: self.instrument.tigerbox.move_absolute(z=location))
+        self.move_stage['slider'].setEnabled(False)
+        self.move_stage['position'].setEnabled(False)
+        location = location * 10
+        self.instrument.tigerbox.move_absolute(z=location, wait=False)
+        self.move_stage_worker = self._move_stage_worker()
         self.move_stage_worker.start()
         self.move_stage_worker.finished.connect(self.enable_stage_slider)
 
+    @thread_worker
+    def _move_stage_worker(self):
+
+        moving = True
+        pos_old = self.instrument.sample_pose.get_position()
+        sleep(.01)
+        while moving:
+            pos_new = self.instrument.sample_pose.get_position()
+            if pos_old != pos_new:
+                moving = True
+                pos_old = pos_new
+                self.move_stage_textbox(pos_old['y'])
+                self.update_slider(pos_old)
+                sleep(.01)
+            else:
+                moving = False
+
+
     def enable_stage_slider(self):
         """Enable stage slider after stage has finished moving"""
+
 
         self.move_stage['slider'].setEnabled(True)
         self.move_stage['position'].setEnabled(True)
@@ -418,7 +458,7 @@ class Livestream(WidgetBase):
         """Update position of slider if stage halted. Location will be sample pose"""
 
         if type(location) == bool:      # if location is bool, then halt button was pressed
-            self.move_stage_worker.quit()
-            location = self.instrument.tigerbox.get_position('z')
+            if self.move_stage_worker != None: self.move_stage_worker.quit()
+            location = self.instrument.sample_pose.get_position()
         self.move_stage_textbox(int(location['y']/10))
         self.move_stage['slider'].setValue(int(location['y']/10))

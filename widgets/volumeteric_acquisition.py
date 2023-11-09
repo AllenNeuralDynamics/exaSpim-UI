@@ -11,6 +11,7 @@ import qtpy.QtCore as QtCore
 from qtpy.QtGui import QValidator
 from datetime import timedelta, datetime
 import calendar
+import os
 
 class VolumetericAcquisition(WidgetBase):
 
@@ -36,6 +37,8 @@ class VolumetericAcquisition(WidgetBase):
         self.data_line = None       # Lines for graph
         self.limits = {}
         self.scans = []  # Scans performed in the UI instance
+
+        self.run_alive = False
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -91,7 +94,9 @@ class VolumetericAcquisition(WidgetBase):
         self.run_worker = self._run()
         self.run_worker.finished.connect(lambda: self.end_scan())  # Napari threads have finished signals
         self.run_worker.start()
+        self.run_alive = True
         sleep(5)
+        self.instrument.acquiring_images = True     # Hack for making sure livestream starts
         self.volumetric_image_worker = create_worker(self.instrument._livestream_worker)
         self.volumetric_image_worker.yielded.connect(self.update_layer)
         self.volumetric_image_worker.start()
@@ -102,15 +107,15 @@ class VolumetericAcquisition(WidgetBase):
 
     @thread_worker
     def _run(self):
-        self.instrument.run(overwrite=self.volumetric_image['overwrite'].isChecked(), spim_name='exaSPIM')
+        self.instrument.run(overwrite=self.volumetric_image['overwrite'].isChecked())
 
     def end_scan(self):
-
+        self.run_alive = False
         self.run_worker.quit()
         self.volumetric_image_worker.quit()
         self.viewer.layers.clear()      # Gui crashes if you zoom in on last uploaded image.
         dest = str(self.instrument.img_storage_dir) if self.instrument.img_storage_dir != None else str(
-            self.instrument.local_storage_dir)
+            self.instrument.cache_storage_dir)
         self.scans.append(dest)
         self.volumetric_image['start'].blockSignals(False)
         self.volumetric_image['start'].released.emit()  # Signal that scans are done
@@ -134,16 +139,25 @@ class VolumetericAcquisition(WidgetBase):
         QtCore.QMetaObject.invokeMethod(self.progress['end_time'], 'setHidden', QtCore.Q_ARG(bool, False))
         QtCore.QMetaObject.invokeMethod(self.progress['bar'], 'setValue', QtCore.Q_ARG(int, 0))
         while self.instrument.total_tiles == 0:
+            sleep(.5)
             yield       # Stall since the following meterics won't be calculated yet
         total_tiles = self.instrument.total_tiles
         z_tiles = total_tiles / self.instrument.x_y_tiles
-        time_scale = self.instrument.x_y_tiles/86400
-        est_run_time = ((((self.cfg.get_channel_cycle_time(488))) * z_tiles)    # Kinda hacky if cycle times are different
-                        *self.instrument.x_y_tiles)/86400    # Needs to be a base class thing
 
+        # if self.cfg.local_storage_dir != self.cfg.ext_storage_dir:
+        #     speeds_MB_s = self.instrument.check_read_write_speeds(drive=self.cfg.ext_storage_dir)
+        #     tile_transfer_time_days = ((self.cfg.bytes_per_image * (1 / 1000000)*z_tiles)/speeds_MB_s['write'])/86400
+        # else:
+        #     tile_transfer_time_days = 0
+
+        time_scale = self.instrument.x_y_tiles/86400
+        est_run_time = (self.cfg.get_channel_cycle_time(488) * z_tiles * time_scale)#+ tile_transfer_time_days    # Kinda hacky if cycle times are different
+        # transfer_pct = tile_transfer_time_days/(self.cfg.get_channel_cycle_time(488) * z_tiles * time_scale)
+        # tile_pct = 1-transfer_pct
         pct = 0
         while self.instrument.acquiring_images:
-            pct = self.instrument.frame_index/total_tiles if self.instrument.frame_index != 0 else pct
+            #if self.instrument.acquiring_images:
+            pct = (self.instrument.frame_index/total_tiles) if self.instrument.frame_index != 0 else pct
             QtCore.QMetaObject.invokeMethod(self.progress['bar'], f'setValue', QtCore.Q_ARG(int, round(pct*100)))
             # Qt threads are so weird. Can't invoke repaint method outside of main thread and Qthreads don't play nice
             # with napari threads so QMetaObject is static read-only instances
@@ -152,9 +166,9 @@ class VolumetericAcquisition(WidgetBase):
                 completion_date = self.instrument.start_time + timedelta(days=est_run_time)
 
             else:
-                total_time_days = self.instrument.tile_time_s*time_scale
+                total_time_days = (self.instrument.tile_time_s*time_scale)#+tile_transfer_time_days
                 completion_date = self.instrument.start_time + timedelta(days=total_time_days)
-
+            sleep(.5)
             date_str = completion_date.strftime("%d %b, %Y at %H:%M %p")
             weekday = calendar.day_name[completion_date.weekday()]
             self.progress['end_time'].setText(f"End Time: {weekday}, {date_str}")

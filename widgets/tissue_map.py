@@ -33,18 +33,14 @@ class TissueMap(WidgetBase):
         self.rotate = {}
         self.map = {}
         self.origin = {}
-        self.overview = {}
         self.initial_volume = [self.cfg.volume_x_um, self.cfg.volume_y_um, self.cfg.volume_z_um]
         self.sample_pose_remap = self.cfg.sample_pose_kwds['axis_map']
         self.og_axis_remap = {v: k for k, v in self.sample_pose_remap.items()}
         self.tiles = []  # Tile in sample pose coords
         self.grid_step_um = {}  # Grid steps in samplepose coords
-        self.gl_overview = None
         self.tile_offset = self.remap_axis({'x': (.5 * 0.001 * (self.cfg.tile_specs['x_field_of_view_um'])),
                                             'y': (.5 * 0.001 * (self.cfg.tile_specs['y_field_of_view_um'])),
                                             'z': 0})
-        self.gl_overview_pos = []
-        self.gl_overview = []
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -75,191 +71,6 @@ class TissueMap(WidgetBase):
         """Sets map_pos_alive to false when worker finishes"""
         print('map_pos_worker_finished')
         self.map_pos_alive = False
-
-    def overview_widget(self):
-
-        """Widgets for setting up a quick scan"""
-
-        self.overview['start'] = QPushButton('Start overview')
-        self.overview['start'].pressed.connect(self.start_overview)
-
-        return self.create_layout(struct='V', **self.overview)
-
-    def start_overview(self):
-
-        """Start overview function of instrument"""
-        self.overview['start'].blockSignals(True)  # Block release signal so progress bar doesn't start
-        if self.instrument.livestream_enabled.is_set():
-            self.error_msg('Livestreaming',
-                           'Please stop the livestream before starting overview.')
-            self.overview['start'].blockSignals(False)
-            return
-
-        if len(self.cfg.imaging_specs["laser_wavelengths"]) > 1:
-            self.error_msg('One Channel',
-                           'Please select only one channel for overview')
-            self.overview['start'].blockSignals(False)
-            return
-
-        return_value = self.scan_summary()
-        if return_value == QMessageBox.Cancel:
-            self.overview['start'].blockSignals(False)
-            return
-        self.overview['start'].blockSignals(False)
-        self.overview['start'].released.emit()  # Start progress bar
-
-        self.map_pos_worker.quit()  # Stopping tissue map update
-        for i in range(0, len(self.tab_widget)): self.tab_widget.setTabEnabled(i, False)  # Disable tabs during scan
-
-        self.overview_worker = self._overview_worker()
-        self.overview_worker.finished.connect(lambda: self.overview_finish())  # Napari threads have finished signals
-        self.overview_worker.start()
-
-        self.viewer.layers.clear()  # Clear existing layers
-        self.volumetric_image_worker = create_worker(self.instrument._livestream_worker)
-        self.volumetric_image_worker.yielded.connect(self.update_layer)
-        self.volumetric_image_worker.start()
-
-    def overview_finish(self):
-
-        """Function to be executed at the end of the overview"""
-
-        self.volumetric_image_worker.quit()
-
-        for i in range(0, len(self.tab_widget)): self.tab_widget.setTabEnabled(i, True)  # Enabled tabs
-
-        x_overlap_um = round((self.cfg.tile_overlap_x_percent / 100) * self.cfg.tile_specs['x_field_of_view_um'])
-        y_overlap_um = round((self.cfg.tile_overlap_y_percent / 100) * self.cfg.tile_specs['y_field_of_view_um'])
-        self.scale_x = (
-                (((self.cfg.tile_specs['x_field_of_view_um'] * self.xtiles) - (x_overlap_um * (self.xtiles - 1))) * 0.001)
-                / self.overview_array[0].shape[1])
-
-        self.scale_y = (
-                (((self.cfg.tile_specs['y_field_of_view_um'] * self.ytiles) - (y_overlap_um * (self.ytiles - 1))) * 0.001)
-                / self.overview_array[0].shape[0])
-
-        j = 0
-        colormap_array = [None] * len(self.cfg.channels)
-        for wl, image in zip(self.cfg.channels, self.overview_array):
-            key = f'Overview {wl}'
-            self.viewer.add_image(image, name=key,
-                                  scale=[self.scale_x * 1000,
-                                         self.scale_y * 1000])  # scale so it won't be squished in viewer
-            self.viewer.layers[key].blending = 'additive'
-
-            wl_color = self.cfg.channel_specs[str(wl)]['color']
-            rgb = [x / 255 for x in qtpy.QtGui.QColor(wl_color).getRgb()]
-
-            max = np.percentile(image, 90)
-            min = np.percentile(image, 5)
-            image.clip(min, max, out=image)
-            image -= min
-            image = np.floor_divide(np.flip(image), (max - min) / 256, out=image, casting='unsafe')
-            overview_RGBA = \
-                pg.makeRGBA(image, levels=[0, 256])[0]  # GLImage needs to be RGBA
-            for i in range(0, len(rgb)):
-                overview_RGBA[:, :, i] = overview_RGBA[:, :, i] * rgb[i]
-            colormap_array[j] = overview_RGBA
-            j += 1
-        blended = colormap_array[0]
-        for i in range(1, len(colormap_array)):
-            alpha = 1 - (i / (i + 1))
-            blended = blend_modes.darken_only(blended.astype('f8'), colormap_array[i].astype('f8'), alpha)
-
-        final_RGBA = pg.makeRGBA(blended, levels=[0, 256])[0]
-        self.gl_overview.append(gl.GLImageItem(final_RGBA, glOptions='translucent'))
-        gui_coord = self.remap_axis({k: v * 0.0001 for k, v in self.instrument.sample_pose.get_position().items()})
-        self.gl_overview_pos.append({'x':gui_coord['x'] - self.tile_offset['x'],
-                                    'y': gui_coord['y'] - self.tile_offset['y'],
-                                    'z': gui_coord['z'] + (self.tile_offset['z']*(self.xtiles))})
-        self.gl_overview[-1].setTransform(
-                            qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, gui_coord['x'] - self.tile_offset['x'],
-                                                  0.0, self.scale_y, 0.0, gui_coord['y'] - self.tile_offset['y'],
-                                                  self.scale_x, 0.0, 0.0, gui_coord['z'] - (self.tile_offset['z']),
-                                                  0.0, 0.0, 0.0, 1.0))
-
-        self.plot.removeItem(self.setup)
-        self.plot.addItem(self.gl_overview[-1])  # GlImage doesn't like threads, do this outside of thread
-        self.plot.addItem(self.setup)  # Remove and add objectives to see view through them
-
-        self.map_pos_worker = self._map_pos_worker()
-        self.map_pos_alive = True
-        self.map_pos_worker.finished.connect(self.map_pos_worker_finished)
-        self.map_pos_worker.start()  # Restart map update
-
-    @thread_worker
-    def _overview_worker(self):
-
-        self.x_grid_step_um, self.y_grid_step_um = self.instrument.get_xy_grid_step(self.cfg.tile_overlap_x_percent,
-                                                                                    self.cfg.tile_overlap_y_percent)
-
-        while self.map_pos_alive == True:   # Stalling til map pos worker quits
-            sleep(.5)
-            yield
-        self.overview_array, self.xtiles, self.ytiles = self.instrument.overview_scan()
-
-
-        # self.overview_array = [tifffile.imread(fr'D:\overview_img_488_2023-08-07_09-09-36.tiff')]
-        # self.xtiles = 4
-        # self.ytiles = 3
-
-        # Recalculate Limits based on new zero in place
-        limits = self.remap_axis({'x': [-27, 9], 'y': [-7, 7], 'z': [-3, 20]}) if self.instrument.simulated else \
-            self.remap_axis(self.instrument.sample_pose.get_travel_limits(*['x', 'y', 'z']))
-        low = {}
-        up = {}
-        axes_len = {}
-        for dir in limits:
-            low[dir] = limits[dir][0] if limits[dir][0] < limits[dir][1] else limits[dir][1]
-            up[dir] = limits[dir][1] if limits[dir][1] > limits[dir][0] else limits[dir][0]
-            axes_len[dir] = abs(round(up[dir] - low[dir]))
-            self.origin[dir] = round(low[dir] + (axes_len[dir] / 2))
-
-        self.x_axis.setSize(*(axes_len['z'], axes_len['y']))
-        self.x_axis.translate(*(low['x'], self.origin['y'], self.origin['z']))  # Translate to lower end of x and origin of y and -z
-        self.x_axis.setTransform(
-                            qtpy.QtGui.QMatrix4x4(0.0, 0.0, 1.0, low['x'],
-                                                  0.0, 1, 0.0, self.origin['y'],
-                                                  1, 0.0, 0.0, self.origin['z'],
-                                                  0.0, 0.0, 1.0, 0.0))
-        #     = self.create_axes((90, 0, 1, 0),
-        #                                (axes_len['z'], axes_len['y']),
-        #                                (low['x'], self.origin['y'], self.origin['z']))
-        #
-        # # y axes: Translate to lower end of y and origin of x and -z
-        # self.y_axis = self.create_axes((90, 1, 0, 0),
-        #                                (axes_len['x'], axes_len['z']),
-        #                                (self.origin['x'], low['y'], self.origin['z']))
-        #
-        # # z axes: Translate to origin of x, y, z
-        # self.z_axis = self.create_axes((0, 0, 0, 0),
-        #                                (axes_len['x'], axes_len['y']),
-        #                                (self.origin['x'], self.origin['y'], low['z']))
-
-
-    def scan_summary(self):
-
-        x, y, z = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
-                                                           self.cfg.tile_overlap_y_percent,
-                                                           8,
-                                                           self.cfg.volume_x_um,
-                                                           self.cfg.volume_y_um,
-                                                           self.cfg.volume_z_um)
-        est_run_time = ((((self.cfg.get_channel_cycle_time(488))) * z)  # Kinda hacky if cycle times are different
-                        * (x*y)) / 86400
-        msgBox = QMessageBox()
-        msgBox.setIcon(QMessageBox.Information)
-        msgBox.setText(f"Scan Summary\n"
-                       f"Lasers: {self.cfg.channels}\n"
-                       f"Time: {round(est_run_time, 3)} days\n"
-                       f"X Tiles: {x}\n"
-                       f"Y Tiles: {y}\n"
-                       f"Z Tiles: {z}\n"
-                       f"Saving as: {self.cfg.local_storage_dir}\overview_img_{'_'.join(map(str, self.cfg.channels))}\n"
-                       f"Press cancel to abort run")
-        msgBox.setWindowTitle("Scan Summary")
-        msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        return msgBox.exec()
 
     def mark_graph(self):
 
@@ -332,10 +143,11 @@ class TissueMap(WidgetBase):
     def _map_pos_worker(self):
 
         """Update position of stage for tissue map, draw scanning volume, and tiling"""
-        gui_coord = self.instrument.sample_pose.get_position()
+        gui_coord = None
         while True:
 
             try:    # TODO: This is hack for when tigerbox reply is split e.g. '3\r:A4 -76 0 \n'
+
                 self.map_pose = self.instrument.sample_pose.get_position()
                 # Convert 1/10um to mm
                 coord = {k: v * 0.0001 for k, v in self.map_pose.items()}  #if not self.instrument.simulated \
