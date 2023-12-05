@@ -133,11 +133,9 @@ class Lasers(WidgetBase):
     def scan_wavelength_params(self, wv: str):
         """Scans config for relevant laser wavelength parameters
         :param wavelength: the wavelength of the laser"""
-
-        galvo_a = {f'{wv}.galvo.{k}': v for k, v in self.cfg.channel_specs[wv]['galvo_a'].items()}
-        galvo_b = {f'{wv}.galvo.{k}': v for k, v in self.cfg.channel_specs[wv]['galvo_b'].items()}
+        # TODO removing galvo a/b from here
         etl = {f'{wv}.etl.{k}': v for k, v in self.cfg.channel_specs[wv]['etl'].items()}
-        dial_values = {**galvo_a,**galvo_b, **etl}
+        dial_values = {**etl}
 
         self.dials[wv] = {}
         self.dial_widgets[wv] = {}

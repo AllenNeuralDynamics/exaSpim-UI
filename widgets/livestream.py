@@ -52,7 +52,7 @@ class Livestream(WidgetBase):
                       self.cfg.cfg['tile_specs']['y_field_of_view_um'] / self.cfg.sensor_row_count]
 
 
-        self.instrument._setup_waveform_hardware(self.cfg.channels, live=True)
+        self.instrument._setup_waveform_hardware(self.cfg.channels[0], live=True)
 
     def set_tab_widget(self, tab_widget: QTabWidget):
 
@@ -94,7 +94,7 @@ class Livestream(WidgetBase):
 
         wv_strs = [str(x) for x in self.possible_wavelengths]
         self.live_view['wavelength'] = QListWidget()
-        self.live_view['wavelength'].setSelectionMode(QAbstractItemView.MultiSelection)
+        self.live_view['wavelength'].setSelectionMode(QAbstractItemView.SingleSelection)
 
         wv_item = {}
         for wavelength in wv_strs:
@@ -142,10 +142,9 @@ class Livestream(WidgetBase):
 
         self.disable_button(self.live_view['start'])
 
-        wavelengths = [int(item.text()) for item in self.live_view['wavelength'].selectedItems()]
-        wavelengths.sort()
+        wavelength = [int(item.text()) for item in self.live_view['wavelength'].selectedItems()]
         
-        if wavelengths == []:
+        if wavelength == []:
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Information)
             msgBox.setText("Please select lasers for livestream viewing")
@@ -157,13 +156,13 @@ class Livestream(WidgetBase):
         if self.live_view['start'].text() == 'Start Live View':
             self.live_view['start'].setText('Stop Live View')
 
-        ao_voltages_t = generate_waveforms(self.cfg, channels=[405])
+        ao_voltages_t = generate_waveforms(self.cfg, channel=wavelength[0])
         self.instrument.ni.ao_task.control(TaskMode.TASK_UNRESERVE)  # Unreserve buffer
         self.instrument.ni.ao_task.out_stream.output_buf_size = len(
             ao_voltages_t[0])  # Sets buffer to length of voltages
         self.instrument.ni.ao_task.control(TaskMode.TASK_COMMIT)
 
-        self.instrument.start_livestream(wavelengths, self.live_view_checks['scouting'].isChecked())
+        self.instrument.start_livestream(wavelength[0], self.live_view_checks['scouting'].isChecked())
         self.livestream_worker = create_worker(self.instrument._livestream_worker)
         self.livestream_worker.finished.connect(self.stop_livestream)
         if self.live_view['edges'].isChecked():
@@ -185,7 +184,7 @@ class Livestream(WidgetBase):
 
         """Call stop livestream only after livestream thread has finished.
         If camera is stopped before livestream thread, stalling can occur"""
-
+        print('stop')
         self.instrument.stop_livestream()
 
     def stop_live_view(self):
@@ -319,27 +318,32 @@ class Livestream(WidgetBase):
         self.log.info('Starting stage update')
         # While livestreaming and looking at the first tab the stage position updates
         while self.instrument.livestream_enabled.is_set():
-            print('update stage position')
             moved = False
-            try:
-                self.sample_pos = self.instrument.sample_pose.get_position()
-                self.sample_pos['n'] = self.instrument.tigerbox.get_position('n')['N']
-                for direction in self.sample_pos.keys():
-                    if direction in self.pos_widget.keys():
-                        new_pos = int(self.sample_pos[direction] * 1 / 10)
-                        if self.pos_widget[direction].value() != new_pos:
-                            self.pos_widget[direction].setValue(new_pos)
-                            moved = True
+            if not self.instrument.stage_lock.locked():
+                with self.instrument.stage_lock:
+                    try:
+                        self.sample_pos = self.instrument.sample_pose.get_position()
+                        self.sample_pos['n'] = self.instrument.tigerbox.get_position('n')['N']
+                        sleep(.01)
+                        for direction in self.sample_pos.keys():
+                            if direction in self.pos_widget.keys():
+                                new_pos = int(self.sample_pos[direction] * 1 / 10)
+                                if self.pos_widget[direction].value() != new_pos:
+                                    self.pos_widget[direction].setValue(new_pos)
+                                    moved = True
 
-                if moved:
-                    self.update_slider(self.sample_pos)  # Update slide with newest z depth
-                    if self.instrument.scout_mode:
-                        self.start_stop_ni()
-            except Exception as e:
-                #     # Deal with garbled replies from tigerbox
-                #print(e)
-                pass
-                yield
+                        if moved:
+                            self.update_slider(self.sample_pos)  # Update slide with newest z depth
+                            if self.instrument.scout_mode:
+                                self.start_stop_ni()
+                    except Exception as e:
+                        #     # Deal with garbled replies from tigerbox
+                        #print(e)
+                        pass
+                        yield
+            else:
+
+                print('stage locked')
             yield
 
 

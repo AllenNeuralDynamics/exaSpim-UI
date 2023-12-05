@@ -31,7 +31,7 @@ class create_UI():
         if simulated:
             config_path = rf'C:\Users\{os.getlogin()}\Projects\exaSpim-UI\config.toml'
         else:
-            config_path = rf'C:\Users\{os.getlogin()}\Documents\exaspim_files\config.toml'
+            config_path = rf'C:\Users\{os.getlogin()}\Documents\exaspim_files\config.yaml'
 
         # Setup logging.
         # Create log handlers to dispatch:

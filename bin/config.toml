@@ -120,6 +120,9 @@ z = "x"
 wl = "488"
 cfg = "self.cfg"
 
+[channel_specs.488.focus]
+position = -820
+
 [channel_specs.488.camera]
 delay_time_s = 0
 
@@ -139,6 +142,9 @@ setpoint = -0.01
 [channel_specs.561.kwds]
 wl = "561"
 cfg = "self.cfg"
+
+[channel_specs.561.focus]
+position = 0
 
 [channel_specs.561.camera]
 delay_time_s = 0
@@ -160,6 +166,9 @@ setpoint = 0
 wl = "405"
 cfg = "self.cfg"
 
+[channel_specs.405.focus]
+position = 0
+
 [channel_specs.405.camera]
 delay_time_s = 0
 
@@ -179,6 +188,9 @@ setpoint = -0.5
 [channel_specs.638.kwds]
 wl = "638"
 cfg = "self.cfg"
+
+[channel_specs.638.focus]
+position = -810
 
 [channel_specs.638.camera]
 delay_time_s = 0

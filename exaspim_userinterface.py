@@ -1,5 +1,5 @@
 import napari
-from qtpy.QtWidgets import QDockWidget, QTabWidget,QPlainTextEdit, QDialog, QFrame
+from qtpy.QtWidgets import QDockWidget, QTabWidget,QPlainTextEdit, QDialog, QFrame, QToolButton, QMenu, QWidgetAction, QAction
 from PyQt5 import QtWidgets
 import exaspim.exaspim as exaspim
 from widgets.instrument_parameters import InstrumentParameters
@@ -56,7 +56,6 @@ class UserInterface:
             tabbed_widgets.setTabPosition(QTabWidget.South)
             tabbed_widgets.addTab(main_window, 'Main Window')  # Adding main window tab
             tabbed_widgets = self.laser_parameters.add_wavelength_tabs(tabbed_widgets)  # Generate laser wl tabs
-            tabbed_widgets.addTab(self.vol_acq_params.limit_tab(), 'Limits')
             tabbed_widgets.addTab(self.tissue_map_window, 'Tissue Map')  # Adding tissue map tab
             self.tissue_map.set_tab_widget(tabbed_widgets)  # Passing in tab widget to tissue map
             self.livestream_parameters.set_tab_widget(tabbed_widgets)  # Passing in tab widget to livestream
@@ -116,11 +115,24 @@ class UserInterface:
 
         self.vol_acq_params = VolumetericAcquisition(self.viewer, self.cfg, self.instrument, self.simulated)
         widgets = {
+            'limits_button': QToolButton(),
             'volumetric_image': self.vol_acq_params.volumeteric_imaging_button(),
             'waveform': self.vol_acq_params.waveform_graph(),
         }
+        vol_imaging_widget = self.vol_acq_params.create_layout(struct='V', **widgets)
 
-        return self.vol_acq_params.create_layout(struct='V', **widgets)
+        widgets['limits_button'].setText('Calculate Limits')
+        menu = QMenu(widgets['limits_button'])
+        # Create a QAction to put scan table in menu
+        table = QWidgetAction(vol_imaging_widget)
+        limits_widget = self.vol_acq_params.limit_widget()
+        table.setDefaultWidget(self.vol_acq_params.limit_widget())
+        menu.addAction(table)
+        # Set menu
+        widgets['limits_button'].setMenu(menu)
+        widgets['limits_button'].setPopupMode(QToolButton.MenuButtonPopup)
+
+        return vol_imaging_widget
 
     def tissue_map_widget(self):
 

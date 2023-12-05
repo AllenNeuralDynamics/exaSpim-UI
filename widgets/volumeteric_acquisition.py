@@ -1,6 +1,6 @@
 from widgets.widget_base import WidgetBase
 from qtpy.QtWidgets import QPushButton, QCheckBox, QLabel, QComboBox, QSpinBox, QDockWidget, \
-    QSlider, QLineEdit,QMessageBox, QTabWidget, QProgressBar
+    QSlider, QLineEdit,QMessageBox, QTabWidget, QProgressBar, QToolButton, QMenu, QWidgetAction, QAction
 import numpy as np
 from pyqtgraph import PlotWidget, mkPen
 from exaspim.operations.waveform_generator import generate_waveforms
@@ -138,29 +138,33 @@ class VolumetericAcquisition(WidgetBase):
         QtCore.QMetaObject.invokeMethod(self.progress['bar'], 'setHidden', QtCore.Q_ARG(bool, False))
         QtCore.QMetaObject.invokeMethod(self.progress['end_time'], 'setHidden', QtCore.Q_ARG(bool, False))
         QtCore.QMetaObject.invokeMethod(self.progress['bar'], 'setValue', QtCore.Q_ARG(int, 0))
+        x, y, z = self.instrument.get_tile_counts(self.cfg.tile_overlap_x_percent,
+                                                  self.cfg.tile_overlap_y_percent,
+                                                  self.cfg.z_step_size_um,
+                                                  self.cfg.volume_x_um,
+                                                  self.cfg.volume_y_um,
+                                                  self.cfg.volume_z_um)
+        time_scale = (x * y) / 86400
+        z_tiles = 0
+        est_run_time = 0
+        for ch in self.cfg.channels:
+            z_tiles += z / self.cfg.get_binning(ch)
+            est_run_time += self.cfg.get_channel_cycle_time(ch) * (z / self.cfg.get_binning(ch))
+        est_run_time = est_run_time * time_scale
+        total_tiles = z_tiles * x * y
+
         while self.instrument.total_tiles == 0:
             sleep(.5)
             yield       # Stall since the following meterics won't be calculated yet
-        total_tiles = self.instrument.total_tiles
-        z_tiles = total_tiles / self.instrument.x_y_tiles
 
-        # if self.cfg.local_storage_dir != self.cfg.ext_storage_dir:
-        #     speeds_MB_s = self.instrument.check_read_write_speeds(drive=self.cfg.ext_storage_dir)
-        #     tile_transfer_time_days = ((self.cfg.bytes_per_image * (1 / 1000000)*z_tiles)/speeds_MB_s['write'])/86400
-        # else:
-        #     tile_transfer_time_days = 0
-
-        time_scale = self.instrument.x_y_tiles/86400
-        est_run_time = (self.cfg.get_channel_cycle_time(488) * z_tiles * time_scale)#+ tile_transfer_time_days    # Kinda hacky if cycle times are different
-        # transfer_pct = tile_transfer_time_days/(self.cfg.get_channel_cycle_time(488) * z_tiles * time_scale)
-        # tile_pct = 1-transfer_pct
         pct = 0
         while self.instrument.acquiring_images:
-            #if self.instrument.acquiring_images:
             pct = (self.instrument.frame_index/total_tiles) if self.instrument.frame_index != 0 else pct
-            QtCore.QMetaObject.invokeMethod(self.progress['bar'], f'setValue', QtCore.Q_ARG(int, round(pct*100)))
-            # Qt threads are so weird. Can't invoke repaint method outside of main thread and Qthreads don't play nice
-            # with napari threads so QMetaObject is static read-only instances
+            with self.instrument.gpu_down_sample_lock:
+                QtCore.QMetaObject.invokeMethod(self.progress['bar'], f'setValue', QtCore.Q_ARG(int, round(pct*100)))
+                # Qt threads are so weird. Can't invoke repaint method outside of main thread and Qthreads don't play nice
+                # with napari threads so QMetaObject is static read-only instances. Use with gpu_down_sample_lock to
+                # avoid calling gpu simultaneously
 
             if self.instrument.curr_tile_index == 0:
                 completion_date = self.instrument.start_time + timedelta(days=est_run_time)
@@ -182,8 +186,13 @@ class VolumetericAcquisition(WidgetBase):
                                                            self.cfg.volume_x_um,
                                                            self.cfg.volume_y_um,
                                                            self.cfg.volume_z_um)
-        est_run_time = ((((self.cfg.get_channel_cycle_time(488))) * z)  # Kinda hacky if cycle times are different
-                        * (x*y)) / 86400
+        total_z_tiles = 0
+        est_run_time = 0
+        for ch in self.cfg.channels:
+            total_z_tiles += z/self.cfg.get_binning(ch)
+            est_run_time += self.cfg.get_channel_cycle_time(ch) * (z/self.cfg.get_binning(ch))
+        est_run_time = est_run_time * (x * y) / 86400
+
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Information)
         msgBox.setText(f"Scan Summary\n"
@@ -191,7 +200,7 @@ class VolumetericAcquisition(WidgetBase):
                        f"Time: {round(est_run_time, 3)} days\n"
                        f"X Tiles: {x}\n"
                        f"Y Tiles: {y}\n"
-                       f"Z Tiles: {z}\n"
+                       f"Z Tiles: {total_z_tiles}\n"
                        f"Local Dir: {self.cfg.local_storage_dir}\n"
                        f"External Dir: {self.cfg.ext_storage_dir}\n"
                        f"Press cancel to abort run")
@@ -223,9 +232,9 @@ class VolumetericAcquisition(WidgetBase):
     def waveform_update(self):
 
         """Update graph with new waveforms"""
-
-        voltages_t = generate_waveforms(self.cfg, channels =self.cfg.channels)      # Generate waveforms based on cfg
-        t = np.linspace(0, self.cfg.daq_period_time, len(voltages_t[0]), endpoint=False)    # Calculate time
+        # TODO: hardcoding as channels[0] for now -> no longer interleaving neeed to fix later
+        voltages_t = generate_waveforms(self.cfg, channel =self.cfg.channels[0])      # Generate waveforms based on cfg
+        t = np.linspace(0, self.cfg.get_channel_cycle_time(self.cfg.channels[0]), len(voltages_t[0]), endpoint=False)    # Calculate time
 
         # Cycle through indexes and ao channels names to add lines and legend to graph
         for index, ao_name in enumerate(self.cfg.n2c.keys()):
@@ -241,7 +250,7 @@ class VolumetericAcquisition(WidgetBase):
         finally:
             self.viewer.window.add_dock_widget(self.waveform['graph'])
 
-    def limit_tab(self):
+    def limit_widget(self):
 
         """Create tab to set limits on exaspim"""
 
@@ -286,14 +295,20 @@ class VolumetericAcquisition(WidgetBase):
         min_widgets = self.create_layout(struct='H',**{k:v for k,v in self.min_max_widgets.items() if 'min' in k})
         max_widgets = self.create_layout(struct='H',**{k:v for k,v in self.min_max_widgets.items() if 'max' in k})
         calculate_widget = self.create_layout(struct='H', button=self.min_max_widgets['calculate'], label=self.min_max_widgets['calculate label'])
+        calculate_widget.setMinimumHeight(50)
         return self.create_layout(struct='V', min_label =self.min_max_widgets['Min_limit'], min_widgets=min_widgets,
                                   max_label=self.min_max_widgets['Max_limit'], max_widgets=max_widgets,
                                   calculate =calculate_widget)
+
     def set_limit(self, pushed, direction, extreme):
 
         """Set min and max limits for x, y, z with button"""
+        # Try and not ask tigerbox position when other thread is asking
 
+        self.instrument.stage_lock.acquire()
         position = self.instrument.sample_pose.get_position()
+        self.instrument.stage_lock.release()
+
         self.min_max_widgets[direction+extreme+'label'].setText(f': {position[direction]/10}')
         if extreme == 'min':
             self.limits[f'{direction}'][0] = position[direction]/10
@@ -343,6 +358,7 @@ class VolumetericAcquisition(WidgetBase):
                           'z': self.limits['z'][0]}
         f"Scan Summary\n"
         f"Lasers: {self.cfg.channels}\n"
+        size = {k:round(v,1) for k, v in size.items()}
         self.min_max_widgets['calculate label'].setText(f"Start Position: {start_position}\nVolume: {size}")
         self.exceed_stage_limit_check(start_position, size)
 
@@ -354,7 +370,10 @@ class VolumetericAcquisition(WidgetBase):
         limits_mm = self.instrument.sample_pose.get_travel_limits(*['x', 'y', 'z'])
         limits_um = {k: [v[0] * 1000, v[1] * 1000] for k, v in limits_mm.items()}
         if start_pos_um == None:
+            self.instrument.stage_lock.acquire()
             start_pos = self.instrument.sample_pose.get_position()
+            self.instrument.stage_lock.release()
+
             start_pos_um = {k: v / 10 for k, v in start_pos.items()}
 
         # Calculate tiles for volume
