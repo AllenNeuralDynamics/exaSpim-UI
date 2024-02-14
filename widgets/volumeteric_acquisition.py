@@ -12,7 +12,7 @@ from qtpy.QtGui import QValidator
 from datetime import timedelta, datetime
 import calendar
 import os
-
+from nidaqmx.constants import TaskMode
 class VolumetericAcquisition(WidgetBase):
 
     def __init__(self,viewer, cfg, instrument, simulated):
@@ -91,15 +91,17 @@ class VolumetericAcquisition(WidgetBase):
         for i in range(1,len(self.tab_widget)):
             self.tab_widget.setTabEnabled(i,False)
         self.instrument.cfg.save()
+
+
         self.run_worker = self._run()
         self.run_worker.finished.connect(lambda: self.end_scan())  # Napari threads have finished signals
         self.run_worker.start()
         self.run_alive = True
-        sleep(5)
-        self.instrument.acquiring_images = True     # Hack for making sure livestream starts
-        self.volumetric_image_worker = create_worker(self.instrument._livestream_worker)
-        self.volumetric_image_worker.yielded.connect(self.update_layer)
-        self.volumetric_image_worker.start()
+        # sleep(5)
+        # self.instrument.acquiring_images = True     # Hack for making sure livestream starts
+        # self.volumetric_image_worker = create_worker(self.instrument._livestream_worker)
+        # self.volumetric_image_worker.yielded.connect(self.update_layer)
+        # self.volumetric_image_worker.start()
 
         sleep(5)
         self.progress_worker = self._progress_bar_worker()
@@ -112,7 +114,7 @@ class VolumetericAcquisition(WidgetBase):
     def end_scan(self):
         self.run_alive = False
         self.run_worker.quit()
-        self.volumetric_image_worker.quit()
+        #self.volumetric_image_worker.quit()
         self.viewer.layers.clear()      # Gui crashes if you zoom in on last uploaded image.
         dest = str(self.instrument.img_storage_dir) if self.instrument.img_storage_dir != None else str(
             self.instrument.cache_storage_dir)

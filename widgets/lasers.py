@@ -141,9 +141,9 @@ class Lasers(WidgetBase):
         self.dial_widgets[wv] = {}
         for k, v in dial_values.items():
             self.dials[wv][k] = QDial()
-            self.dials[wv][k].setRange(0, 5000)  # QDials only do int values
+            self.dials[wv][k].setRange(0, 15000)  # QDials only do int values
             self.dials[wv][k].setNotchesVisible(True)
-            self.dials[wv][k].setValue(int(v * 1000))
+            self.dials[wv][k].setValue(int(v * 3000))
             self.dials[wv][k].setSingleStep(1)
             self.dials[wv][k].setStyleSheet(
                 f"QDial{{ background-color:{self.cfg.channel_specs[str(wv)]['color']}; }}")
@@ -155,9 +155,9 @@ class Lasers(WidgetBase):
             self.dials[wv][k + 'label'].setAlignment(QtCore.Qt.AlignCenter)
 
             self.dials[wv][k].valueChanged.connect(
-                lambda value=str(self.dials[wv][k].value() / 1000),  # Divide to get dec
+                lambda value=str(self.dials[wv][k].value() / 3000),  # Divide to get dec
                        widget=self.dials[wv][k + 'value']: self.update_dial_label(value, widget))
-            self.dials[wv][k + 'value'].textChanged.connect(lambda value=self.dials[wv][k].value() / 1000,
+            self.dials[wv][k + 'value'].textChanged.connect(lambda value=self.dials[wv][k].value() / 3000,
                                                                    path=k.split('.'),
                                                                    dict=self.cfg.channel_specs:
                                                             self.config_change(value, path, dict))
@@ -168,7 +168,7 @@ class Lasers(WidgetBase):
 
     def update_dial_label(self, value, widget):
 
-        widget.setText(str(value/1000))
+        widget.setText(str(value/3000))
 
     def laser_power_slider(self):
 
